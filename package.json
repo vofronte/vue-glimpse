@@ -65,9 +65,9 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "pnpm package-prod",
+    "vscode:prepublish": "bun package-prod",
     "compile": "vite build",
-    "watch": "npm-run-all -p watch:*",
+    "watch": "bun --bun npm-run-all -p watch:*",
     "watch:vite": "vite build --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "package": "vsce package",
@@ -78,7 +78,7 @@
     "lint:fix": "eslint --fix",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "pnpm package-prod && pnpm publish"
+    "release": "bun package-prod && bun publish"
   },
   "dependencies": {
     "@vue/compiler-dom": "^3.5.21",

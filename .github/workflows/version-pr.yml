@@ -12,30 +12,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # This is needed to allow changesets to fetch previous tags
           fetch-depth: 0
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
+          bun-version: latest
 
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
 
       - name: Create Version PR or Update Existing
         id: changesets
         uses: changesets/action@v1
         with:
-          # This will run `pnpm changeset version` and create a PR
+          # This will run `bun changeset version` and create a PR
+          version: bun run version
           title: Upcoming Release
           commit: 'chore: update version and changelog'
         env:

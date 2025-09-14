@@ -13,36 +13,36 @@
         "kind": "build",
         "isDefault": true
       },
-      "problemMatcher": [],
-      "presentation": {
-        "reveal": "never"
-      }
+      "problemMatcher": []
     },
 
     // Vite watch task
     {
       "label": "watch:vite",
-      "type": "npm",
-      "script": "watch:vite",
+      "type": "shell",
+      "command": "bun run watch:vite",
       "isBackground": true,
       "problemMatcher": "$esbuild-watch",
       "presentation": {
-        "group": "watchers",
-        "reveal": "silent"
+        "reveal": "always",
+        "focus": true,
+        "clear": true,
+        "group": "vueglimpse-watchers"
       }
     },
 
     // TSC watch task
     {
       "label": "watch:tsc",
-      "type": "npm",
-      "script": "watch:tsc",
+      "type": "shell",
+      "command": "bun run watch:tsc",
       "isBackground": true,
       "problemMatcher": "$tsc-watch",
       "presentation": {
-        "clear": true,
-        "group": "watchers",
-        "reveal": "silent"
+        "reveal": "silent",
+        "focus": false,
+        "clear": false,
+        "group": "vueglimpse-watchers"
       }
     }
   ]
