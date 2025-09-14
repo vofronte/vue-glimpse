@@ -8,6 +8,7 @@ export interface AnalysisResult {
   computedRanges: Range[]
   methodRanges: Range[]
   storeRanges: Range[]
+  emitRanges: Range[]
 }
 
 export interface ScriptIdentifiers {
@@ -18,4 +19,5 @@ export interface ScriptIdentifiers {
   computed: Set<string>
   methods: Set<string>
   store: Set<string>
+  emits: Set<string>
 }

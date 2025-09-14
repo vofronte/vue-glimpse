@@ -1,15 +1,7 @@
 import type { ExtensionContext, TextEditor } from 'vscode'
 import { window, workspace } from 'vscode'
-import {
-  computedDecorationType,
-  localStateDecorationType,
-  methodDecorationType,
-  propDecorationType,
-  reactiveDecorationType,
-  refDecorationType,
-  storeDecorationType,
-} from './decorators.js'
-import { analyzeVueFile } from './parser/index.js'
+import { AnalysisManager } from './analysis/AnalysisManager.js'
+import { IDENTIFIER_CATEGORIES } from './identifierCategories.js'
 import { log } from './utils/logger.js'
 
 let activeEditor: TextEditor | undefined = window.activeTextEditor
@@ -21,9 +13,16 @@ let timeout: NodeJS.Timeout | undefined
 export function activate(context: ExtensionContext) {
   log('VueGlimpse is now active!')
 
+  const analysisManager = new AnalysisManager()
+
   // --- Event subscribers setup ---
 
   // 1. When user changes active tab (editor)
+  context.subscriptions.push(
+    // Clear cache when a document is closed to prevent memory leaks
+    workspace.onDidCloseTextDocument(doc => analysisManager.removeDocument(doc.uri.toString())),
+  )
+
   context.subscriptions.push(
     window.onDidChangeActiveTextEditor((editor) => {
       activeEditor = editor
@@ -66,36 +65,27 @@ export function activate(context: ExtensionContext) {
       return
     }
 
-    if (activeEditor.document.languageId !== 'vue') {
+    const document = activeEditor.document
+
+    if (document.languageId !== 'vue') {
       // Clear ALL decoration types
-      activeEditor.setDecorations(propDecorationType, [])
-      activeEditor.setDecorations(localStateDecorationType, [])
-      activeEditor.setDecorations(refDecorationType, [])
-      activeEditor.setDecorations(reactiveDecorationType, [])
-      activeEditor.setDecorations(computedDecorationType, [])
-      activeEditor.setDecorations(methodDecorationType, [])
-      activeEditor.setDecorations(storeDecorationType, [])
+      for (const category of IDENTIFIER_CATEGORIES) {
+        activeEditor.setDecorations(category.decoration, [])
+      }
       return
     }
 
-    log(`Analyzing ${activeEditor.document.fileName}...`)
-    const code = activeEditor.document.getText()
+    // Get analysis result from our powerful manager
+    const analysisResult = analysisManager.getAnalysis(document)
 
-    // Get extended result from parser
-    const { propRanges, localStateRanges, refRanges, reactiveRanges, computedRanges, methodRanges, storeRanges } = analyzeVueFile(code, activeEditor.document)
+    log(` > Found ${analysisResult.propRanges.length} props, ${analysisResult.localStateRanges.length} locals, ${analysisResult.refRanges.length} refs, ${analysisResult.reactiveRanges.length} reactives, ${analysisResult.computedRanges.length} computed, ${analysisResult.methodRanges.length} methods, ${analysisResult.storeRanges.length} from store, ${analysisResult.emitRanges.length} emits.`)
 
-    log(` > Found ${propRanges.length} props, ${localStateRanges.length} locals, ${refRanges.length} refs, ${reactiveRanges.length} reactives, ${computedRanges.length} computed, ${methodRanges.length} methods, ${storeRanges.length} from store.`)
-
-    activeEditor.setDecorations(propDecorationType, propRanges)
-    activeEditor.setDecorations(localStateDecorationType, localStateRanges)
-    activeEditor.setDecorations(refDecorationType, refRanges)
-    activeEditor.setDecorations(reactiveDecorationType, reactiveRanges)
-    activeEditor.setDecorations(computedDecorationType, computedRanges)
-    activeEditor.setDecorations(methodDecorationType, methodRanges)
-    activeEditor.setDecorations(storeDecorationType, storeRanges)
+    for (const category of IDENTIFIER_CATEGORIES) {
+      const ranges = analysisResult[category.resultProperty]
+      activeEditor.setDecorations(category.decoration, ranges.filter(Boolean))
+    }
   }
 
-  // --- Initial launch ---
   if (activeEditor) {
     triggerUpdateDecorations()
   }

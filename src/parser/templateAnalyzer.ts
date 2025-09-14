@@ -11,6 +11,7 @@ import {
 
 } from 'typescript'
 import * as vscode from 'vscode'
+import { IDENTIFIER_CATEGORIES } from '../identifierCategories.js'
 import { log } from '../utils/logger.js'
 
 const AST_NODE_TYPES = {
@@ -33,7 +34,17 @@ function isSimpleExpressionNode(node?: Node): node is SimpleExpressionNode {
 }
 
 export function analyzeTemplate(descriptor: SFCDescriptor, identifiers: ScriptIdentifiers, document: vscode.TextDocument): AnalysisResult {
-  const result: AnalysisResult = { propRanges: [], localStateRanges: [], refRanges: [], reactiveRanges: [], computedRanges: [], methodRanges: [], storeRanges: [] }
+  const result: AnalysisResult = { propRanges: [], localStateRanges: [], refRanges: [], reactiveRanges: [], computedRanges: [], methodRanges: [], storeRanges: [], emitRanges: [] }
+  const allScriptIdentifiers = new Set([
+    ...identifiers.props,
+    ...identifiers.localState,
+    ...identifiers.ref,
+    ...identifiers.reactive,
+    ...identifiers.computed,
+    ...identifiers.methods,
+    ...identifiers.store,
+    ...identifiers.emits,
+  ])
 
   function walkTemplateAst(node: TemplateChildNode, scopeVariables: Set<string>) {
     const newScopeVariables = new Set(scopeVariables)
@@ -92,18 +103,31 @@ export function analyzeTemplate(descriptor: SFCDescriptor, identifiers: ScriptId
       }
       if (isIdentifier(node)) {
         const varName = node.text
+
+        // Handle the special case for the built-in $emit
+        if (varName === '$emit' && !allScriptIdentifiers.has('$emit')) {
+          const range = createRange(expOffset + node.getStart(), varName.length, varName)
+          if (range) {
+            result.emitRanges.push(range)
+          }
+
+          return
+        }
+
         if (scopeVariables.has(varName)) { return }
 
         const range = createRange(expOffset + node.getStart(), varName.length, varName)
         if (!range) { return }
 
-        if (identifiers.props.has(varName)) { result.propRanges.push(range) }
-        else if (identifiers.store.has(varName)) { result.storeRanges.push(range) }
-        else if (identifiers.ref.has(varName)) { result.refRanges.push(range) }
-        else if (identifiers.reactive.has(varName)) { result.reactiveRanges.push(range) }
-        else if (identifiers.computed.has(varName)) { result.computedRanges.push(range) }
-        else if (identifiers.methods.has(varName)) { result.methodRanges.push(range) }
-        else if (identifiers.localState.has(varName)) { result.localStateRanges.push(range) }
+        // Find the category for the identifier by looping through our config
+        for (const category of IDENTIFIER_CATEGORIES) {
+          const scriptSet = identifiers[category.scriptProperty] as Set<string>
+          if (scriptSet.has(varName)) {
+            const resultRanges = result[category.resultProperty] as vscode.Range[]
+            resultRanges.push(range)
+            return
+          }
+        }
       }
       forEachChild(node, walkExpressionAst)
     }

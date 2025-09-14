@@ -9,7 +9,7 @@ import { analyzeTemplate } from './templateAnalyzer.js'
 let compileId = 0
 
 export function analyzeVueFile(code: string, document: TextDocument): AnalysisResult {
-  const emptyResult: AnalysisResult = { propRanges: [], localStateRanges: [], refRanges: [], reactiveRanges: [], computedRanges: [], methodRanges: [], storeRanges: [] }
+  const emptyResult: AnalysisResult = { propRanges: [], localStateRanges: [], refRanges: [], reactiveRanges: [], computedRanges: [], methodRanges: [], storeRanges: [], emitRanges: [] }
 
   try {
     // Step 1: Parse the SFC to get the descriptor.
@@ -29,8 +29,9 @@ export function analyzeVueFile(code: string, document: TextDocument): AnalysisRe
       // Keep options minimal for performance.
     })
 
-    // Step 3: Analyze the compiled script bindings.
-    const scriptIdentifiers = analyzeScript(scriptBlock)
+    // Step 3: Analyze the script, providing both the compiled result (for bindings)
+    // and the original content (for finding macros like defineEmits).
+    const scriptIdentifiers = analyzeScript(scriptBlock, descriptor.scriptSetup.content)
 
     log('SCRIPT ANALYSIS RESULT:', {
       props: [...scriptIdentifiers.props],
@@ -40,6 +41,7 @@ export function analyzeVueFile(code: string, document: TextDocument): AnalysisRe
       computed: [...scriptIdentifiers.computed],
       methods: [...scriptIdentifiers.methods],
       store: [...scriptIdentifiers.store],
+      emits: [...scriptIdentifiers.emits],
     })
 
     // Step 4: Analyze the template using the script analysis results.

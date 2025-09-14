@@ -31,3 +31,5 @@ export const computedDecorationType = createDecoration('⚡', 'gitDecoration.ren
 export const methodDecorationType = createDecoration('ƒ', 'gitDecoration.untrackedResourceForeground')
 /** Decoration for store-related properties (e.g., Vuex, Pinia). */
 export const storeDecorationType = createDecoration('📦', 'gitDecoration.conflictingResourceForeground')
+/** Decoration for component emits. */
+export const emitDecorationType = createDecoration('📤', 'gitDecoration.addedResourceForeground')
