@@ -1,9 +1,9 @@
 {
-  "name": "vue-origin-lens",
-  "displayName": "vue-origin-lens",
+  "name": "vue-glimpse",
+  "displayName": "Vue Glimpse",
   "type": "module",
   "version": "0.0.1",
-  "description": " Instantly see where your Vue variables come from (props, state, etc.)",
+  "description": "Instantly see the origin of your Vue template variables (props, state, etc.) without leaving your HTML.",
   "categories": [
     "Other"
   ],
@@ -16,12 +16,12 @@
   ],
   "contributes": {
     "configuration": {
-      "title": "Vue Origin Lens",
+      "title": "Vue Glimpse",
       "properties": {
-        "vueOriginLens.enabled": {
+        "vueGlimpse.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Enables or disables the Vue Origin Lens extension."
+          "description": "Enables or disables the Vue Glimpse extension."
         }
       }
     }

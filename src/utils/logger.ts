@@ -11,7 +11,7 @@ export const IS_DEBUG_MODE = true
  */
 export function log(...args: any[]) {
   if (IS_DEBUG_MODE) {
-    console.log('[VUE_ORIGIN_LENS]', ...args)
+    console.log('[VUE_GLIMPSE]', ...args)
   }
 }
 
@@ -20,5 +20,5 @@ export function log(...args: any[]) {
  * @param args Arguments for error console output.
  */
 export function logError(...args: any[]) {
-  console.error('[VUE_ORIGIN_LENS ERROR]', ...args)
+  console.error('[VUE_GLIMPSE ERROR]', ...args)
 }

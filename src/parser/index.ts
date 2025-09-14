@@ -24,7 +24,7 @@ export function analyzeVueFile(code: string, document: vscode.TextDocument): Ana
 
     // Step 2: Compile the script to get binding metadata. This is our "oracle".
     const scriptBlock = compileScript(descriptor, {
-      id: `vue-origin-lens-${compileId++}`,
+      id: `vue-glimpse-${compileId++}`,
       // We don't need template inlining, source maps, etc. for our analysis.
       // Keep options minimal for performance.
     })
