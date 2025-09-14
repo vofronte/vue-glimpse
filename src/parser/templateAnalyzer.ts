@@ -1,7 +1,15 @@
 import type { AttributeNode, DirectiveNode, ElementNode, InterpolationNode, Node, SimpleExpressionNode, TemplateChildNode } from '@vue/compiler-core'
 import type { SFCDescriptor } from '@vue/compiler-sfc'
+import type { Node as TSNode } from 'typescript'
 import type { AnalysisResult, ScriptIdentifiers } from './types.js'
-import * as ts from 'typescript'
+import {
+  createSourceFile,
+  forEachChild,
+  isIdentifier,
+  isPropertyAccessExpression,
+  ScriptTarget,
+
+} from 'typescript'
 import * as vscode from 'vscode'
 import { log } from '../utils/logger.js'
 
@@ -75,14 +83,14 @@ export function analyzeTemplate(descriptor: SFCDescriptor, identifiers: ScriptId
 
     const expOffset = exp.loc.start.offset
     const expSource = exp.content
-    const expSourceFile = ts.createSourceFile('exp.ts', expSource, ts.ScriptTarget.Latest, true)
+    const expSourceFile = createSourceFile('exp.ts', expSource, ScriptTarget.Latest, true)
 
-    function walkExpressionAst(node: ts.Node) {
-      if (ts.isPropertyAccessExpression(node)) {
+    function walkExpressionAst(node: TSNode) {
+      if (isPropertyAccessExpression(node)) {
         walkExpressionAst(node.expression)
         return
       }
-      if (ts.isIdentifier(node)) {
+      if (isIdentifier(node)) {
         const varName = node.text
         if (scopeVariables.has(varName)) { return }
 
@@ -97,7 +105,7 @@ export function analyzeTemplate(descriptor: SFCDescriptor, identifiers: ScriptId
         else if (identifiers.methods.has(varName)) { result.methodRanges.push(range) }
         else if (identifiers.localState.has(varName)) { result.localStateRanges.push(range) }
       }
-      ts.forEachChild(node, walkExpressionAst)
+      forEachChild(node, walkExpressionAst)
     }
     walkExpressionAst(expSourceFile)
   }

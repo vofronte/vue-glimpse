@@ -1,7 +1,19 @@
 import type { SFCScriptBlock } from '@vue/compiler-sfc'
+import type { Node as TSNode } from 'typescript'
 import type { ScriptIdentifiers } from './types.js'
 import { BindingTypes } from '@vue/compiler-dom'
-import * as ts from 'typescript'
+import {
+  createSourceFile,
+  forEachChild,
+  isArrowFunction,
+  isCallExpression,
+  isFunctionDeclaration,
+  isFunctionExpression,
+  isIdentifier,
+  isObjectBindingPattern,
+  isVariableStatement,
+  ScriptTarget,
+} from 'typescript'
 import { log } from '../utils/logger.js'
 
 /**
@@ -30,25 +42,25 @@ export function analyzeScript(scriptBlock: SFCScriptBlock): ScriptIdentifiers {
   // --- Lightweight AST Pass for Specifics ---
   // The compiler gives us general types (e.g., SETUP_CONST), but we need to know
   // if a const is a function, a computed property, or a store reference.
-  const sourceFile = ts.createSourceFile('component.ts', scriptBlock.content, ts.ScriptTarget.Latest, true)
+  const sourceFile = createSourceFile('component.ts', scriptBlock.content, ScriptTarget.Latest, true)
   const methods = new Set<string>()
   const computeds = new Set<string>()
   const stores = new Set<string>()
 
-  function astWalk(node: ts.Node) {
-    if (ts.isFunctionDeclaration(node) && node.name) {
+  function astWalk(node: TSNode) {
+    if (isFunctionDeclaration(node) && node.name) {
       methods.add(node.name.text)
     }
-    else if (ts.isVariableStatement(node)) {
+    else if (isVariableStatement(node)) {
       for (const decl of node.declarationList.declarations) {
         // Handle simple `const/let name = ...`
-        if (ts.isIdentifier(decl.name)) {
+        if (isIdentifier(decl.name)) {
           const varName = decl.name.text
           if (decl.initializer) {
-            if (ts.isArrowFunction(decl.initializer) || ts.isFunctionExpression(decl.initializer)) {
+            if (isArrowFunction(decl.initializer) || isFunctionExpression(decl.initializer)) {
               methods.add(varName)
             }
-            else if (ts.isCallExpression(decl.initializer) && ts.isIdentifier(decl.initializer.expression)) {
+            else if (isCallExpression(decl.initializer) && isIdentifier(decl.initializer.expression)) {
               const callName = decl.initializer.expression.text
               if (callName === 'computed') {
                 computeds.add(varName)
@@ -60,18 +72,18 @@ export function analyzeScript(scriptBlock: SFCScriptBlock): ScriptIdentifiers {
           }
         }
         // Handle `const { a, b } = storeToRefs(...)`
-        else if (ts.isObjectBindingPattern(decl.name) && decl.initializer
-          && ts.isCallExpression(decl.initializer) && ts.isIdentifier(decl.initializer.expression)
+        else if (isObjectBindingPattern(decl.name) && decl.initializer
+          && isCallExpression(decl.initializer) && isIdentifier(decl.initializer.expression)
           && decl.initializer.expression.text === 'storeToRefs') {
           for (const element of decl.name.elements) {
-            if (ts.isIdentifier(element.name)) {
+            if (isIdentifier(element.name)) {
               stores.add(element.name.text)
             }
           }
         }
       }
     }
-    ts.forEachChild(node, astWalk)
+    forEachChild(node, astWalk)
   }
   astWalk(sourceFile)
 

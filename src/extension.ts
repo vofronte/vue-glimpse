@@ -1,22 +1,31 @@
-import * as vscode from 'vscode'
-import { computedDecorationType, localStateDecorationType, methodDecorationType, propDecorationType, reactiveDecorationType, refDecorationType, storeDecorationType } from './decorators.js'
+import type { ExtensionContext, TextEditor } from 'vscode'
+import { window, workspace } from 'vscode'
+import {
+  computedDecorationType,
+  localStateDecorationType,
+  methodDecorationType,
+  propDecorationType,
+  reactiveDecorationType,
+  refDecorationType,
+  storeDecorationType,
+} from './decorators.js'
 import { analyzeVueFile } from './parser/index.js'
 import { log } from './utils/logger.js'
 
-let activeEditor = vscode.window.activeTextEditor
+let activeEditor: TextEditor | undefined = window.activeTextEditor
 let timeout: NodeJS.Timeout | undefined
 
 /**
  * Main extension activation function. Called when first opening a .vue file.
  */
-export function activate(context: vscode.ExtensionContext) {
-  log('Vue Origin Lens is now active!')
+export function activate(context: ExtensionContext) {
+  log('Vue Glimpse is now active!')
 
   // --- Event subscribers setup ---
 
   // 1. When user changes active tab (editor)
   context.subscriptions.push(
-    vscode.window.onDidChangeActiveTextEditor((editor) => {
+    window.onDidChangeActiveTextEditor((editor) => {
       activeEditor = editor
       if (editor) {
         triggerUpdateDecorations()
@@ -26,7 +35,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // 2. When user types in document
   context.subscriptions.push(
-    vscode.workspace.onDidChangeTextDocument((event) => {
+    workspace.onDidChangeTextDocument((event) => {
       // Update only if changes occurred in active editor
       if (activeEditor && event.document === activeEditor.document) {
         triggerUpdateDecorations()
@@ -87,7 +96,6 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   // --- Initial launch ---
-  // If an editor is already open when extension activates, run analysis.
   if (activeEditor) {
     triggerUpdateDecorations()
   }

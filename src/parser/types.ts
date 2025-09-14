@@ -1,13 +1,13 @@
-import type * as vscode from 'vscode'
+import type { Range } from 'vscode'
 
 export interface AnalysisResult {
-  propRanges: vscode.Range[]
-  localStateRanges: vscode.Range[]
-  refRanges: vscode.Range[]
-  reactiveRanges: vscode.Range[]
-  computedRanges: vscode.Range[]
-  methodRanges: vscode.Range[]
-  storeRanges: vscode.Range[]
+  propRanges: Range[]
+  localStateRanges: Range[]
+  refRanges: Range[]
+  reactiveRanges: Range[]
+  computedRanges: Range[]
+  methodRanges: Range[]
+  storeRanges: Range[]
 }
 
 export interface ScriptIdentifiers {

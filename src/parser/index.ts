@@ -1,4 +1,4 @@
-import type * as vscode from 'vscode'
+import type { TextDocument } from 'vscode'
 import type { AnalysisResult } from './types.js'
 import { compileScript, parse } from '@vue/compiler-sfc'
 import { log, logError } from '../utils/logger.js'
@@ -8,7 +8,7 @@ import { analyzeTemplate } from './templateAnalyzer.js'
 // A simple counter for a unique ID for compileScript
 let compileId = 0
 
-export function analyzeVueFile(code: string, document: vscode.TextDocument): AnalysisResult {
+export function analyzeVueFile(code: string, document: TextDocument): AnalysisResult {
   const emptyResult: AnalysisResult = { propRanges: [], localStateRanges: [], refRanges: [], reactiveRanges: [], computedRanges: [], methodRanges: [], storeRanges: [] }
 
   try {
