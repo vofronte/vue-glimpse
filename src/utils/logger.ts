@@ -1,26 +1,24 @@
 /**
- * Глобальный флаг для включения/выключения отладочных логов.
- * Единственное место, где нужно менять это значение.
+ * Global flag for enabling/disabling debug logs.
+ * The only place where this value needs to be changed.
  */
-export const IS_DEBUG_MODE = true;
+export const IS_DEBUG_MODE = true
 
 /**
- * Централизованная функция логирования.
- * Использует префикс для легкого поиска наших логов в консоли.
- * @param args Аргументы для вывода в консоль.
+ * Centralized logging function.
+ * Uses prefix for easy search of our logs in console.
+ * @param args Arguments for console output.
  */
-export const log = (...args: any[]) => {
-    if (IS_DEBUG_MODE) {
-        // Используем console.log, так как он выводит в Debug Console VS Code
-        console.log('[VUE_ORIGIN_LENS]', ...args);
-    }
-};
+export function log(...args: any[]) {
+  if (IS_DEBUG_MODE) {
+    console.log('[VUE_ORIGIN_LENS]', ...args)
+  }
+}
 
 /**
- * Централизованная функция для логирования ошибок.
- * @param args Аргументы для вывода в консоль ошибок.
+ * Centralized function for error logging.
+ * @param args Arguments for error console output.
  */
-export const logError = (...args: any[]) => {
-    // Ошибки выводим всегда, независимо от флага отладки
-    console.error('[VUE_ORIGIN_LENS ERROR]', ...args);
-};
+export function logError(...args: any[]) {
+  console.error('[VUE_ORIGIN_LENS ERROR]', ...args)
+}

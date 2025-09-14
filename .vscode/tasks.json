@@ -1,64 +1,61 @@
-// See https://go.microsoft.com/fwlink/?LinkId=733558
-// for the documentation about the tasks.json format
+// .vscode/tasks.json
 {
-	"version": "2.0.0",
-	"tasks": [
-		{
-            "label": "watch",
-            "dependsOn": [
-                "npm: watch:tsc",
-                "npm: watch:esbuild"
-            ],
-            "presentation": {
-                "reveal": "never"
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "type": "npm",
-            "script": "watch:esbuild",
-            "group": "build",
-            "problemMatcher": "$esbuild-watch",
-            "isBackground": true,
-            "label": "npm: watch:esbuild",
-            "presentation": {
-                "group": "watch",
-                "reveal": "never"
-            }
-        },
-		{
-            "type": "npm",
-            "script": "watch:tsc",
-            "group": "build",
-            "problemMatcher": "$tsc-watch",
-            "isBackground": true,
-            "label": "npm: watch:tsc",
-            "presentation": {
-                "group": "watch",
-                "reveal": "never"
-            }
-        },
-		{
-			"type": "npm",
-			"script": "watch-tests",
-			"problemMatcher": "$tsc-watch",
-			"isBackground": true,
-			"presentation": {
-				"reveal": "never",
-				"group": "watchers"
-			},
-			"group": "build"
-		},
-		{
-			"label": "tasks: watch-tests",
-			"dependsOn": [
-				"npm: watch",
-				"npm: watch-tests"
-			],
-			"problemMatcher": []
-		}
-	]
+  "version": "2.0.0",
+  "tasks": [
+    // --- УПРАВЛЯЮЩАЯ ЗАДАЧА ---
+    // Эта задача будет нашей "задачей сборки по умолчанию".
+    // Она не выполняет команд сама, а только запускает две другие.
+    {
+      "label": "watch",
+      "dependsOn": [
+        "watch:vite",
+        "watch:tsc"
+      ],
+      // Запускаем их параллельно
+      "dependsOrder": "parallel",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      // Управляющей задаче не нужен свой problem matcher
+      "problemMatcher": [],
+      "presentation": {
+        // Никогда не показывать терминал для самой управляющей задачи
+        "reveal": "never"
+      }
+    },
+
+    // --- РАБОЧАЯ ЗАДАЧА №1: VITE ---
+    {
+      "label": "watch:vite",
+      "type": "npm",
+      "script": "watch:vite",
+      "isBackground": true, // Важно для watch-задач
+      "problemMatcher": "$esbuild-watch",
+      "presentation": {
+        // Очищаем терминал перед каждым запуском
+        "clear": true,
+        // Создаем группу терминалов с именем "watchers"
+        "group": "watchers",
+        // Показываем терминал только при ошибках
+        "reveal": "silent"
+      }
+    },
+
+    // --- РАБОЧАЯ ЗАДАЧА №2: TSC ---
+    {
+      "label": "watch:tsc",
+      "type": "npm",
+      "script": "watch:tsc",
+      "isBackground": true, // Важно для watch-задач
+      "problemMatcher": "$tsc-watch",
+      "presentation": {
+        "clear": true,
+        // Помещаем этот терминал в ТУ ЖЕ САМУЮ группу "watchers".
+        // VS Code автоматически разделит терминал для задач из одной группы.
+        "group": "watchers",
+        "reveal": "silent"
+      }
+    }
+  ]
 }

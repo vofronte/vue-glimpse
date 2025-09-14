@@ -1,99 +1,99 @@
-import * as vscode from 'vscode';
-import { propDecorationType, localStateDecorationType, computedDecorationType, methodDecorationType, storeDecorationType } from './decorators';
-import { analyzeVueFile } from './parser/';
-import { log } from './utils/logger';
+import * as vscode from 'vscode'
+import { computedDecorationType, localStateDecorationType, methodDecorationType, propDecorationType, reactiveDecorationType, refDecorationType, storeDecorationType } from './decorators.js'
+import { analyzeVueFile } from './parser/index.js'
+import { log } from './utils/logger.js'
 
-// Переменная для хранения активного редактора.
-let activeEditor = vscode.window.activeTextEditor;
-// Переменная для таймера debounce.
-let timeout: NodeJS.Timeout | undefined = undefined;
+let activeEditor = vscode.window.activeTextEditor
+let timeout: NodeJS.Timeout | undefined
 
 /**
- * Главная функция активации расширения. Вызывается при первом открытии .vue файла.
+ * Main extension activation function. Called when first opening a .vue file.
  */
 export function activate(context: vscode.ExtensionContext) {
-    log('Vue Origin Lens is now active!');
+  log('Vue Origin Lens is now active!')
 
-    // --- Настройка подписчиков на события ---
+  // --- Event subscribers setup ---
 
-    // 1. Когда пользователь меняет активную вкладку (редактор)
-    context.subscriptions.push(
-        vscode.window.onDidChangeActiveTextEditor(editor => {
-            activeEditor = editor;
-            if (editor) {
-                // Запускаем обновление с задержкой, чтобы не было "мелькания"
-                triggerUpdateDecorations();
-            }
-        })
-    );
+  // 1. When user changes active tab (editor)
+  context.subscriptions.push(
+    vscode.window.onDidChangeActiveTextEditor((editor) => {
+      activeEditor = editor
+      if (editor) {
+        triggerUpdateDecorations()
+      }
+    }),
+  )
 
-    // 2. Когда пользователь печатает в документе
-    context.subscriptions.push(
-        vscode.workspace.onDidChangeTextDocument(event => {
-            // Обновляем только если изменения произошли в активном редакторе
-            if (activeEditor && event.document === activeEditor.document) {
-                triggerUpdateDecorations();
-            }
-        })
-    );
+  // 2. When user types in document
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeTextDocument((event) => {
+      // Update only if changes occurred in active editor
+      if (activeEditor && event.document === activeEditor.document) {
+        triggerUpdateDecorations()
+      }
+    }),
+  )
 
-    // --- Логика обновления декораций ---
+  // --- Decoration update logic ---
 
-    /**
-     * "Debouncer": запускает `updateDecorations` не на каждое нажатие клавиши,
-     * а только после небольшой паузы, чтобы не нагружать систему.
-     */
-    function triggerUpdateDecorations() {
-        if (timeout) {
-            clearTimeout(timeout);
-            timeout = undefined;
-        }
-        // Задержка в 300ms — хороший баланс между отзывчивостью и производительностью.
-        timeout = setTimeout(updateDecorations, 300);
+  /**
+   * "Debouncer": runs `updateDecorations` not on every keystroke,
+   * but only after a short pause to avoid system overload.
+   */
+  function triggerUpdateDecorations() {
+    if (timeout) {
+      clearTimeout(timeout)
+      timeout = undefined
     }
-    
-    /**
-     * Основная "рабочая" функция: анализирует код и применяет стили.
-     */
-    function updateDecorations() {
+
+    timeout = setTimeout(updateDecorations, 300)
+  }
+
+  /**
+   * Main "working" function: analyzes code and applies styles.
+   */
+  function updateDecorations() {
     if (!activeEditor) {
-        return;
+      return
     }
 
     if (activeEditor.document.languageId !== 'vue') {
-        // Очищаем ВСЕ типы декораций
-        activeEditor.setDecorations(propDecorationType, []);
-        activeEditor.setDecorations(localStateDecorationType, []);
-        activeEditor.setDecorations(computedDecorationType, []);
-        activeEditor.setDecorations(methodDecorationType, []);
-        activeEditor.setDecorations(storeDecorationType, []);
-        return;
+      // Clear ALL decoration types
+      activeEditor.setDecorations(propDecorationType, [])
+      activeEditor.setDecorations(localStateDecorationType, [])
+      activeEditor.setDecorations(refDecorationType, [])
+      activeEditor.setDecorations(reactiveDecorationType, [])
+      activeEditor.setDecorations(computedDecorationType, [])
+      activeEditor.setDecorations(methodDecorationType, [])
+      activeEditor.setDecorations(storeDecorationType, [])
+      return
     }
-    
-    log(`Analyzing ${activeEditor.document.fileName}...`); // <--- ИСПОЛЬЗУЕМ log
-    const code = activeEditor.document.getText();
-    
-    // Получаем расширенный результат от парсера
-    const { propRanges, localStateRanges, computedRanges, methodRanges, storeRanges } = analyzeVueFile(code, activeEditor.document);
 
-    log(` > Found ${propRanges.length} props, ${localStateRanges.length} locals, ${computedRanges.length} computed, ${methodRanges.length} methods, ${storeRanges.length} from store.`); // <--- ИСПОЛЬЗУЕМ log
-    
-    // Применяем ВСЕ типы декораторов
-    activeEditor.setDecorations(propDecorationType, propRanges);
-    activeEditor.setDecorations(localStateDecorationType, localStateRanges);
-    activeEditor.setDecorations(computedDecorationType, computedRanges);
-    activeEditor.setDecorations(methodDecorationType, methodRanges);
-    activeEditor.setDecorations(storeDecorationType, storeRanges); 
-}
+    log(`Analyzing ${activeEditor.document.fileName}...`)
+    const code = activeEditor.document.getText()
 
-    // --- Первичный запуск ---
-    // Если при активации расширения уже открыт какой-то редактор, запускаем анализ.
-    if (activeEditor) {
-        triggerUpdateDecorations();
-    }
+    // Get extended result from parser
+    const { propRanges, localStateRanges, refRanges, reactiveRanges, computedRanges, methodRanges, storeRanges } = analyzeVueFile(code, activeEditor.document)
+
+    log(` > Found ${propRanges.length} props, ${localStateRanges.length} locals, ${refRanges.length} refs, ${reactiveRanges.length} reactives, ${computedRanges.length} computed, ${methodRanges.length} methods, ${storeRanges.length} from store.`)
+
+    activeEditor.setDecorations(propDecorationType, propRanges)
+    activeEditor.setDecorations(localStateDecorationType, localStateRanges)
+    activeEditor.setDecorations(refDecorationType, refRanges)
+    activeEditor.setDecorations(reactiveDecorationType, reactiveRanges)
+    activeEditor.setDecorations(computedDecorationType, computedRanges)
+    activeEditor.setDecorations(methodDecorationType, methodRanges)
+    activeEditor.setDecorations(storeDecorationType, storeRanges)
+  }
+
+  // --- Initial launch ---
+  // If an editor is already open when extension activates, run analysis.
+  if (activeEditor) {
+    triggerUpdateDecorations()
+  }
 }
 
 /**
- * Функция деактивации. Вызывается при выключении VS Code или расширения.
+ * Deactivation function. Called when VS Code or extension is disabled.
  */
 export function deactivate() {}
