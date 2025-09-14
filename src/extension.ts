@@ -19,7 +19,7 @@ let timeout: NodeJS.Timeout | undefined
  * Main extension activation function. Called when first opening a .vue file.
  */
 export function activate(context: ExtensionContext) {
-  log('Vue Glimpse is now active!')
+  log('VueGlimpse is now active!')
 
   // --- Event subscribers setup ---
 

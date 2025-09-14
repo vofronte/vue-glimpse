@@ -1,58 +1,46 @@
-// .vscode/tasks.json
 {
   "version": "2.0.0",
   "tasks": [
-    // --- УПРАВЛЯЮЩАЯ ЗАДАЧА ---
-    // Эта задача будет нашей "задачей сборки по умолчанию".
-    // Она не выполняет команд сама, а только запускает две другие.
+    // Watch task - orchestrates other tasks
     {
       "label": "watch",
       "dependsOn": [
         "watch:vite",
         "watch:tsc"
       ],
-      // Запускаем их параллельно
       "dependsOrder": "parallel",
       "group": {
         "kind": "build",
         "isDefault": true
       },
-      // Управляющей задаче не нужен свой problem matcher
       "problemMatcher": [],
       "presentation": {
-        // Никогда не показывать терминал для самой управляющей задачи
         "reveal": "never"
       }
     },
 
-    // --- РАБОЧАЯ ЗАДАЧА №1: VITE ---
+    // Vite watch task
     {
       "label": "watch:vite",
       "type": "npm",
       "script": "watch:vite",
-      "isBackground": true, // Важно для watch-задач
+      "isBackground": true,
       "problemMatcher": "$esbuild-watch",
       "presentation": {
-        // Очищаем терминал перед каждым запуском
-        "clear": true,
-        // Создаем группу терминалов с именем "watchers"
         "group": "watchers",
-        // Показываем терминал только при ошибках
         "reveal": "silent"
       }
     },
 
-    // --- РАБОЧАЯ ЗАДАЧА №2: TSC ---
+    // TSC watch task
     {
       "label": "watch:tsc",
       "type": "npm",
       "script": "watch:tsc",
-      "isBackground": true, // Важно для watch-задач
+      "isBackground": true,
       "problemMatcher": "$tsc-watch",
       "presentation": {
         "clear": true,
-        // Помещаем этот терминал в ТУ ЖЕ САМУЮ группу "watchers".
-        // VS Code автоматически разделит терминал для задач из одной группы.
         "group": "watchers",
         "reveal": "silent"
       }

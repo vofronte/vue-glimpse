@@ -1,45 +1,81 @@
 {
+  "publisher": "vofronte",
   "name": "vue-glimpse",
-  "displayName": "Vue Glimpse",
+  "displayName": "VueGlimpse",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Instantly see the origin of your Vue template variables (props, state, etc.) without leaving your HTML.",
+  "author": "vofronte",
+  "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://github.com/vofronte/vue-glimpse/blob/main/README.md",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vofronte/vue-glimpse.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vofronte/vue-glimpse/issues"
+  },
+  "sponsor": {
+    "url": "https://github.com/sponsors/vofronte"
+  },
+  "galleryBanner": {
+    "color": "#42b883",
+    "theme": "dark"
+  },
+  "keywords": [
+    "vue",
+    "nuxt",
+    "vue3",
+    "nuxt3",
+    "nuxt4",
+    "script setup",
+    "props",
+    "ref",
+    "reactive",
+    "computed",
+    "origin",
+    "source",
+    "glimpse",
+    "lens",
+    "productivity",
+    "developer tools"
+  ],
   "categories": [
-    "Other"
+    "Visualization",
+    "Programming Languages"
   ],
   "main": "./out/extension.cjs",
+  "icon": "icon.png",
   "engines": {
-    "vscode": "^1.104.0"
+    "vscode": "^1.88.0"
   },
   "activationEvents": [
     "onLanguage:vue"
   ],
   "contributes": {
     "configuration": {
-      "title": "Vue Glimpse",
+      "title": "VueGlimpse",
       "properties": {
         "vueGlimpse.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Enables or disables the Vue Glimpse extension."
+          "description": "Enables or disables the VueGlimpse extension."
         }
       }
     }
   },
   "scripts": {
-    "vscode:prepublish": "pnpm package",
+    "vscode:prepublish": "pnpm package-prod",
     "compile": "vite build",
     "watch": "npm-run-all -p watch:*",
     "watch:vite": "vite build --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "vite build --mode production",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
+    "package": "vsce package",
+    "package-prod": "vite build --mode production",
+    "publish": "vsce publish",
     "check-types": "tsc --noEmit",
     "lint": "eslint",
-    "lint:fix": "eslint --fix",
-    "test": "vscode-test"
+    "lint:fix": "eslint --fix"
   },
   "dependencies": {
     "@vue/compiler-dom": "^3.5.21",
@@ -53,7 +89,7 @@
     "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2",
     "eslint": "^9.35.0",
-    "npm-run-all": "^4.1.5",
+    "npm-run-all2": "^8.0.4",
     "typescript": "^5.9.2",
     "vite": "^5.4.20"
   }

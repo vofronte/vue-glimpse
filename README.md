@@ -1,9 +1,9 @@
-# Vue Glimpse 👓
+# VueGlimpse 👓
 
 **Stop guessing where your variables come from. See their origin instantly.**
 
-[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/undefined_publisher.vue-glimpse?style=flat-square&label=Marketplace)](https://marketplace.visual-studio.com/items/itemName=undefined_publisher.vue-glimpse)
-[![Installs](https://img.shields.io/visual-studio-marketplace/i/undefined_publisher.vue-glimpse?style=flat-square)](https://marketplace.visual-studio.com/items/itemName=undefined_publisher.vue-glimpse)
+[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/vofronte.vue-glimpse?style=flat-square&label=Marketplace)](https://marketplace.visual-studio.com/items/itemName=vofronte.vue-glimpse)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/vofronte.vue-glimpse?style=flat-square)](https://marketplace.visual-studio.com/items/itemName=vofronte.vue-glimpse)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 ---
@@ -14,9 +14,9 @@ You're looking at a large component in your **Vue or Nuxt** project. You see `<p
 
 So you scroll. You jump to the `<script setup>` block, find the variable, and then jump back. A few lines later, you do it again for another variable. Each jump is a small interruption, a tiny context switch that breaks your flow and drains your mental energy.
 
-**Vue Glimpse eliminates these jumps.** It gives you immediate, at-a-glance insight into your data's origin, right where you're working—inside your `<template>`.
+**VueGlimpse eliminates these jumps.** It gives you immediate, at-a-glance insight into your data's origin, right where you're working—inside your `<template>`.
 
-![Vue Glimpse in action](https://raw.githubusercontent.com/vue-glimpse/media/main/demo.gif)
+![VueGlimpse in action](https://raw.githubusercontent.com/vue-glimpse/media/main/demo.gif)
 
 <!-- GIF -->
 
@@ -52,7 +52,7 @@ A simple, intuitive icon set helps you decode your template instantly.
 
 1.  Open **VS Code**.
 2.  Go to the **Extensions** view (`Ctrl+Shift+X`).
-3.  Search for `Vue Glimpse` (or `Nuxt Glimpse`).
+3.  Search for `VueGlimpse`.
 4.  Click **Install**.
 
 ## Contributing

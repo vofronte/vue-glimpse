@@ -11,7 +11,7 @@ export const IS_DEBUG_MODE = true
  */
 export function log(...args: any[]) {
   if (IS_DEBUG_MODE) {
-    console.log('[VUE_GLIMPSE]', ...args)
+    console.log('[VueGlimpse]', ...args)
   }
 }
 
@@ -20,5 +20,5 @@ export function log(...args: any[]) {
  * @param args Arguments for error console output.
  */
 export function logError(...args: any[]) {
-  console.error('[VUE_GLIMPSE ERROR]', ...args)
+  console.error('[VueGlimpse ERROR]', ...args)
 }
