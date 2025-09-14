@@ -9,7 +9,7 @@ import { analyzeTemplate } from './templateAnalyzer.js'
 let compileId = 0
 
 export function analyzeVueFile(code: string, document: TextDocument): AnalysisResult {
-  const emptyResult: AnalysisResult = { propRanges: [], localStateRanges: [], refRanges: [], reactiveRanges: [], computedRanges: [], methodRanges: [], storeRanges: [], emitRanges: [] }
+  const emptyResult: AnalysisResult = { propRanges: [], localStateRanges: [], refRanges: [], reactiveRanges: [], computedRanges: [], methodRanges: [], storeRanges: [], emitRanges: [], passthroughRanges: [] }
 
   try {
     // Step 1: Parse the SFC to get the descriptor.
@@ -42,6 +42,7 @@ export function analyzeVueFile(code: string, document: TextDocument): AnalysisRe
       methods: [...scriptIdentifiers.methods],
       store: [...scriptIdentifiers.store],
       emits: [...scriptIdentifiers.emits],
+      passthrough: [...scriptIdentifiers.passthrough],
     })
 
     // Step 4: Analyze the template using the script analysis results.

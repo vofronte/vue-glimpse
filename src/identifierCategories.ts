@@ -5,6 +5,7 @@ import {
   emitDecorationType,
   localStateDecorationType,
   methodDecorationType,
+  passthroughDecorationType,
   propDecorationType,
   reactiveDecorationType,
   refDecorationType,
@@ -21,6 +22,16 @@ export interface IdentifierCategory {
   resultProperty: keyof AnalysisResult
 }
 
+/**
+ * A map of built-in Vue identifiers found in templates to their corresponding result property.
+ * This helps keep the template analyzer DRY.
+ */
+export const VUE_BUILTIN_HANDLERS = new Map<string, keyof AnalysisResult>([
+  ['$emit', 'emitRanges'],
+  ['$attrs', 'passthroughRanges'],
+  ['$slots', 'passthroughRanges'],
+])
+
 export const IDENTIFIER_CATEGORIES: IdentifierCategory[] = [
   // Highest priority first
   {
@@ -28,6 +39,12 @@ export const IDENTIFIER_CATEGORIES: IdentifierCategory[] = [
     decoration: emitDecorationType,
     scriptProperty: 'emits',
     resultProperty: 'emitRanges',
+  },
+  {
+    key: 'passthrough',
+    decoration: passthroughDecorationType,
+    scriptProperty: 'passthrough',
+    resultProperty: 'passthroughRanges',
   },
   {
     key: 'props',

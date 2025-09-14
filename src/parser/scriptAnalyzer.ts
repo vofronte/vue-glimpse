@@ -36,6 +36,7 @@ export function analyzeScript(scriptBlock: SFCScriptBlock, originalContent: stri
     methods: new Set(),
     store: new Set(),
     emits: new Set(),
+    passthrough: new Set(),
   }
 
   if (!scriptBlock.bindings) {
@@ -51,6 +52,7 @@ export function analyzeScript(scriptBlock: SFCScriptBlock, originalContent: stri
   const computeds = new Set<string>()
   const stores = new Set<string>()
   const emits = new Set<string>()
+  const passthroughs = new Set<string>()
 
   function astWalk(node: TSNode) {
     if (isCallExpression(node) && isIdentifier(node.expression)) {
@@ -67,6 +69,13 @@ export function analyzeScript(scriptBlock: SFCScriptBlock, originalContent: stri
           else {
             emits.add('emit')
             log(`[VueGlimpse][AST Walk] Found standalone 'defineEmits' call. Assuming implicit 'emit'.`)
+          }
+          break
+        }
+        case 'useAttrs':
+        case 'useSlots': {
+          if (node.parent && isVariableDeclaration(node.parent) && isIdentifier(node.parent.name)) {
+            passthroughs.add(node.parent.name.text)
           }
           break
         }
@@ -119,6 +128,7 @@ export function analyzeScript(scriptBlock: SFCScriptBlock, originalContent: stri
   emits.forEach(e => identifiers.emits.add(e))
   stores.forEach(s => identifiers.store.add(s))
   computeds.forEach(c => identifiers.computed.add(c))
+  passthroughs.forEach(p => identifiers.passthrough.add(p))
 
   // --- Process Bindings from Compiler ---
   // This remains our primary source of truth for general binding types.
@@ -128,7 +138,7 @@ export function analyzeScript(scriptBlock: SFCScriptBlock, originalContent: stri
     }
 
     // If already categorized by our more specific AST pass, skip.
-    if (identifiers.emits.has(name) || identifiers.store.has(name) || identifiers.computed.has(name)) {
+    if (identifiers.emits.has(name) || identifiers.store.has(name) || identifiers.computed.has(name) || identifiers.passthrough.has(name)) {
       continue
     }
 

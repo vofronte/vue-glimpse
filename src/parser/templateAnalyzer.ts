@@ -11,7 +11,7 @@ import {
 
 } from 'typescript'
 import * as vscode from 'vscode'
-import { IDENTIFIER_CATEGORIES } from '../identifierCategories.js'
+import { IDENTIFIER_CATEGORIES, VUE_BUILTIN_HANDLERS } from '../identifierCategories.js'
 import { log } from '../utils/logger.js'
 
 const AST_NODE_TYPES = {
@@ -34,7 +34,7 @@ function isSimpleExpressionNode(node?: Node): node is SimpleExpressionNode {
 }
 
 export function analyzeTemplate(descriptor: SFCDescriptor, identifiers: ScriptIdentifiers, document: vscode.TextDocument): AnalysisResult {
-  const result: AnalysisResult = { propRanges: [], localStateRanges: [], refRanges: [], reactiveRanges: [], computedRanges: [], methodRanges: [], storeRanges: [], emitRanges: [] }
+  const result: AnalysisResult = { propRanges: [], localStateRanges: [], refRanges: [], reactiveRanges: [], computedRanges: [], methodRanges: [], storeRanges: [], emitRanges: [], passthroughRanges: [] }
   const allScriptIdentifiers = new Set([
     ...identifiers.props,
     ...identifiers.localState,
@@ -44,6 +44,7 @@ export function analyzeTemplate(descriptor: SFCDescriptor, identifiers: ScriptId
     ...identifiers.methods,
     ...identifiers.store,
     ...identifiers.emits,
+    ...identifiers.passthrough,
   ])
 
   function walkTemplateAst(node: TemplateChildNode, scopeVariables: Set<string>) {
@@ -104,14 +105,16 @@ export function analyzeTemplate(descriptor: SFCDescriptor, identifiers: ScriptId
       if (isIdentifier(node)) {
         const varName = node.text
 
-        // Handle the special case for the built-in $emit
-        if (varName === '$emit' && !allScriptIdentifiers.has('$emit')) {
-          const range = createRange(expOffset + node.getStart(), varName.length, varName)
-          if (range) {
-            result.emitRanges.push(range)
+        // Handle special cases for built-in Vue properties using our central map
+        if (varName.startsWith('$') && !allScriptIdentifiers.has(varName)) {
+          const targetRangeProperty = VUE_BUILTIN_HANDLERS.get(varName)
+          if (targetRangeProperty) {
+            const range = createRange(expOffset + node.getStart(), varName.length, varName)
+            if (range) {
+              (result[targetRangeProperty] as vscode.Range[]).push(range)
+            }
+            return // Stop processing this identifier
           }
-
-          return
         }
 
         if (scopeVariables.has(varName)) { return }

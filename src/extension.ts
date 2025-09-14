@@ -78,7 +78,7 @@ export function activate(context: ExtensionContext) {
     // Get analysis result from our powerful manager
     const analysisResult = analysisManager.getAnalysis(document)
 
-    log(` > Found ${analysisResult.propRanges.length} props, ${analysisResult.localStateRanges.length} locals, ${analysisResult.refRanges.length} refs, ${analysisResult.reactiveRanges.length} reactives, ${analysisResult.computedRanges.length} computed, ${analysisResult.methodRanges.length} methods, ${analysisResult.storeRanges.length} from store, ${analysisResult.emitRanges.length} emits.`)
+    log(` > Found ${analysisResult.propRanges.length} props, ${analysisResult.localStateRanges.length} locals, ${analysisResult.refRanges.length} refs, ${analysisResult.reactiveRanges.length} reactives, ${analysisResult.computedRanges.length} computed, ${analysisResult.methodRanges.length} methods, ${analysisResult.storeRanges.length} from store, ${analysisResult.emitRanges.length} emits, ${analysisResult.passthroughRanges.length} passthroughs.`)
 
     for (const category of IDENTIFIER_CATEGORIES) {
       const ranges = analysisResult[category.resultProperty]

@@ -9,6 +9,7 @@ export interface AnalysisResult {
   methodRanges: Range[]
   storeRanges: Range[]
   emitRanges: Range[]
+  passthroughRanges: Range[]
 }
 
 export interface ScriptIdentifiers {
@@ -20,4 +21,5 @@ export interface ScriptIdentifiers {
   methods: Set<string>
   store: Set<string>
   emits: Set<string>
+  passthrough: Set<string>
 }

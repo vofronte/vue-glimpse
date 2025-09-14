@@ -33,3 +33,5 @@ export const methodDecorationType = createDecoration('ƒ', 'gitDecoration.untrac
 export const storeDecorationType = createDecoration('📦', 'gitDecoration.conflictingResourceForeground')
 /** Decoration for component emits. */
 export const emitDecorationType = createDecoration('📤', 'gitDecoration.addedResourceForeground')
+/** Decoration for passthrough attributes and slots ($attrs, $slots). */
+export const passthroughDecorationType = createDecoration('📥', 'gitDecoration.ignoredResourceForeground')

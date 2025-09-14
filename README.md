@@ -30,8 +30,9 @@ So you scroll. You jump to the `<script setup>` block, find the variable, and th
 
 -   **Future-Ready for Vue & Nuxt:** Built for the entire modern Vue ecosystem (Vue 3+, Nuxt 3+).
 -   **At-a-glance Origin Indicators:** Subtle icons tell you the source of your data.
--   **Compiler-Level Accuracy:** Powered by the official `@vue/compiler-sfc`, the same engine Vue and Nuxt use. If the compiler knows about it, so does this extension.
--   **Comprehensive `<script setup>` Support:** Correctly identifies `props`, `ref`, `reactive`, `computed`, and variables from store patterns (like Pinia's `storeToRefs`).
+-   **Compiler-Level Accuracy:** Powered by the official `@vue/compiler-sfc`, the same engine Vue and Nuxt use.
+-   **Full Component API Visibility:** Correctly identifies `props`, `emits` (`defineEmits`, `$emit`), passthrough `attrs`/`slots` (`useAttrs`, `useSlots`, `$attrs`, `$slots`), `ref`, `reactive`, `computed`, and variables from store patterns.
+-   **Blazing Fast:** Intelligent caching ensures analysis only runs when files change, not every time you switch tabs.
 -   **Zero Configuration:** Install it and it just works.
 
 ## The Legend: Your Guide to Data Origins
@@ -40,13 +41,15 @@ A simple, intuitive icon set helps you decode your template instantly.
 
 | Icon | Origin                      | What It Means                                                |
 | :--: | --------------------------- | ------------------------------------------------------------ |
-|  ℗   | `prop`                      | Data passed down from a parent (`defineProps`).              |
-|  🔹  | `ref`                       | A reactive primitive value (`ref()`).                        |
-|  🔷  | `reactive`                  | A reactive object (`reactive()`).                            |
-|  ⚡   | `computed`                  | A derived value that updates automatically (`computed()`).   |
-|  📦   | `store` / External          | State from a global store like Pinia or Vuex.                |
-|  ƒ   | `method`                    | A function you can call.                                     |
-|  •   | Local Variable              | A simple, non-reactive `const` or `let`.                     |
+|  ℗   | `prop` | Data passed down from a parent (`defineProps`). |
+|  📥   | `attrs` / `slots` | Attributes or slots passed from a parent that are not declared as props. Available via `$attrs`, `$slots`, `useAttrs()`, or `useSlots()`. |
+|  📤   | `emit` | An event sent to a parent component. Available via `defineEmits()` or the built-in `$emit`. |
+|  🔹  | `ref` | A reactive primitive value (`ref()`). |
+|  🔷  | `reactive` | A reactive object (`reactive()`). |
+|  ⚡   | `computed` | A derived value that updates automatically (`computed()`). |
+|  📦   | `store` / External State | State from a global store like Pinia or Vuex. |
+|  ƒ   | `method` | A function you can call. |
+|  •   | Local Variable | A simple, non-reactive `const` or `let`. |
 
 ## Installation
 
