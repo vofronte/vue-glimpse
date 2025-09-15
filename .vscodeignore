@@ -1,11 +1,14 @@
-.vscode/**
-.vscode-test/**
-src/**
-.gitignore
-vsc-extension-quickstart.md
-**/tsconfig.json
-**/pnpm-lock.yaml
-**/pnpm-workspace.yaml
-**/.DS_Store
-**/*.map
-**/*.tsbuildinfo
+# Ignore everything by default
+**/*
+
+# But DO include the compiled extension
+!out/extension.cjs
+
+# And the necessary metadata files
+!package.json
+!README.md
+!LICENSE
+!icon.png
+
+# Also include the source map for better error reporting
+!out/extension.cjs.map
