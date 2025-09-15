@@ -22,9 +22,6 @@
     "color": "#228d6a",
     "theme": "dark"
   },
-  "workspaces": [
-    "."
-  ],
   "keywords": [
     "vue",
     "nuxt",
