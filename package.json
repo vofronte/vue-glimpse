@@ -3,7 +3,7 @@
   "name": "vue-glimpse",
   "displayName": "VueGlimpse",
   "type": "module",
-  "version": "0.3.2",
+  "version": "0.1.0",
   "description": "Instantly see the origin of your Vue template variables (props, state, etc.) without leaving your HTML.",
   "author": "vofronte",
   "license": "SEE LICENSE IN LICENSE",
@@ -19,9 +19,12 @@
     "url": "https://github.com/sponsors/vofronte"
   },
   "galleryBanner": {
-    "color": "#42b883",
+    "color": "#228d6a",
     "theme": "dark"
   },
+  "workspaces": [
+    "."
+  ],
   "keywords": [
     "vue",
     "nuxt",
