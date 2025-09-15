@@ -1,9 +1,11 @@
-name: Release and Publish
+name: Release
 
 on:
   push:
-    tags:
-      - 'v*' # Runs only when a tag like v0.2.1 is pushed
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   release:
@@ -11,6 +13,9 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v5
+        with:
+          # This is needed to allow changesets to fetch previous tags
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -20,7 +25,11 @@ jobs:
       - name: Install Dependencies
         run: bun install --frozen-lockfile
 
-      - name: Publish to VS Code Marketplace
-        run: bun run release
+      - name: Create Release Pull Request or Publish to Marketplace
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: bun run release
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VS_MARKETPLACE_TOKEN: ${{ secrets.VSCE_TOKEN }}
