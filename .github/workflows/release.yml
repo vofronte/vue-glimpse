@@ -8,6 +8,10 @@ on:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -15,7 +19,6 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v5
         with:
-          # This is needed to allow changesets to fetch previous tags
           fetch-depth: 0
 
       - name: Setup Bun
@@ -35,4 +38,4 @@ jobs:
           title: Upcoming Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VS_MARKETPLACE_TOKEN: ${{ secrets.VSCE_TOKEN }}
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
