@@ -78,7 +78,7 @@
     "lint:fix": "eslint --fix",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "bun package-prod && bun publish",
+    "release": "bun run package-prod && bun run publish",
     "prepare": "simple-git-hooks"
   },
   "dependencies": {
