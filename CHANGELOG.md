@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2
+
+### Patch Changes
+
+- [`c5297fd`](https://github.com/vofronte/vue-glimpse/commit/c5297fdcbaa116acd0d9c38e96057043764e9826) Thanks [@vofronte](https://github.com/vofronte)! - fix: align vscode types with engine version for max compatibility
+
 ## 0.3.1
 
 ### Patch Changes
