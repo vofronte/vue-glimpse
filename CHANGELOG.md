@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+### Patch Changes
+
+- [`2750317`](https://github.com/vofronte/vue-glimpse/commit/275031781916604e31cb43a04ff9b0c7c249d712) Thanks [@vofronte](https://github.com/vofronte)! - refine ignore rules for extension packaging
+
 ## 0.1.0
 
 ### Minor Changes
