@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1
+
+### Patch Changes
+
+- [`f433b67`](https://github.com/vofronte/vue-glimpse/commit/f433b672f5b507f27eb08284c8b6a29e2f02ad88) Thanks [@vofronte](https://github.com/vofronte)! - chore: finalize and fix CI/CD pipeline
+
 ## 0.3.0
 
 ### Minor Changes
