@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0
+
+### Minor Changes
+
+- [`8866731`](https://github.com/vofronte/vue-glimpse/commit/8866731dc778d55cc98f22846e0c04cb25125934) Thanks [@vofronte](https://github.com/vofronte)! - feat: Launch v0.2.0 with full component API support (emits, attrs, slots), intelligent caching, and a professional release pipeline.
+
+### Patch Changes
+
+- [`5374028`](https://github.com/vofronte/vue-glimpse/commit/5374028d806cb98b1867821d449ed00b1d65bc69) Thanks [@vofronte](https://github.com/vofronte)! - chore: fix release automation pipeline
+
 ## null
 
 ### Minor Changes
