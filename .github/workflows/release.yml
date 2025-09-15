@@ -1,3 +1,4 @@
+# .github/workflows/release.yml
 name: Release
 
 on:
@@ -30,6 +31,8 @@ jobs:
         uses: changesets/action@v1
         with:
           publish: bun run release
+          commit: 'chore(release): version packages'
+          title: Upcoming Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VS_MARKETPLACE_TOKEN: ${{ secrets.VSCE_TOKEN }}
