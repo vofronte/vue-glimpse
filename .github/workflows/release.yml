@@ -39,19 +39,27 @@ jobs:
       - name: Determine Next Version
         id: cliff
         run: |
-          VERSION=$(bunx git-cliff --bumped-version)
-          if [ -z "$VERSION" ]; then
+          # Get the proposed version from git-cliff (e.g., v0.1.1)
+          BUMPED_VERSION=$(bunx git-cliff --bumped-version)
+
+          if [ -z "$BUMPED_VERSION" ]; then
             echo "No new version determined. Skipping release."
             echo "SKIP=true" >> $GITHUB_OUTPUT
           else
-            echo "New version is $VERSION"
-            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+            # Store the version WITH 'v' for Git operations
+            echo "TAG=$BUMPED_VERSION" >> $GITHUB_OUTPUT
+            # Store the version WITHOUT 'v' for package.json
+            CLEAN_VERSION=${BUMPED_VERSION#v}
+            echo "VERSION=$CLEAN_VERSION" >> $GITHUB_OUTPUT
+            echo "Determined next version: $CLEAN_VERSION"
           fi
 
       - name: Generate Changelog and Bump Version
         if: steps.cliff.outputs.SKIP != 'true'
         run: |
-          bunx git-cliff --bump --output CHANGELOG.md --tag ${{ steps.cliff.outputs.VERSION }}
+          # Generate changelog for the tag WITH 'v'
+          bunx git-cliff --bump --output CHANGELOG.md --tag ${{ steps.cliff.outputs.TAG }}
+          # Update package.json with the clean version WITHOUT 'v'
           bun pm version ${{ steps.cliff.outputs.VERSION }} --no-git-tag-version
 
       - name: Commit and Push Changes
@@ -61,8 +69,9 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "chore(release): ${{ steps.cliff.outputs.VERSION }}"
-            git tag "${{ steps.cliff.outputs.VERSION }}"
+            # Commit and tag WITH 'v'
+            git commit -m "chore(release): ${{ steps.cliff.outputs.TAG }}"
+            git tag "${{ steps.cliff.outputs.TAG }}"
             git push && git push --tags
           fi
 
@@ -76,6 +85,7 @@ jobs:
         if: steps.cliff.outputs.SKIP != 'true'
         run: |
           RELEASE_NOTES=$(bunx git-cliff --latest --strip all)
-          gh release create "${{ steps.cliff.outputs.VERSION }}" --notes "${RELEASE_NOTES}"
+          # Create release for the tag WITH 'v'
+          gh release create "${{ steps.cliff.outputs.TAG }}" --notes "${RELEASE_NOTES}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
