@@ -1,6 +1,9 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.1.1](https://github.com/vofronte/vue-glimpse/compare/v0.1.0...v0.1.1) - 2025-09-16
+### ci
+- **release:** Streamline versioning and release notes generation ([b8ff32f](https://github.com/vofronte/vue-glimpse/commit/b8ff32f4fc3b398ed87000b854bc87fa6fc45294))
 ## [0.1.0] - 2025-09-16
 ### ✨ Features
 - **component-api:** Add support for attrs, slots, and emits ([912cb66](https://github.com/vofronte/vue-glimpse/commit/912cb666e477ac6aa1f930f38a75080a23bada4e))- **analysis:** Add cached analysis manager and emit decoration ([3273cfb](https://github.com/vofronte/vue-glimpse/commit/3273cfb9646b4065522c4793197d34e5ea089e9e))- **extension:** Implement Vue extension ([55cb8a1](https://github.com/vofronte/vue-glimpse/commit/55cb8a10e77015206306f5f63e6a3db5729395cc))### 🐛 Bug Fixes
