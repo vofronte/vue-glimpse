@@ -47,5 +47,6 @@ commit_parsers = [
   { message = "^chore", group = "<!-- 7 -->🧹 Miscellaneous Chores" },
 ]
 filter_commits = false
+prepend_tags = "v"
 tag_pattern = "v[0-9].*"
 sort_commits = "newest"
