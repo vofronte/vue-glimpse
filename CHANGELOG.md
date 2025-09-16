@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.1.4](https://github.com/vofronte/vue-glimpse/compare/v0.1.3...v0.1.4) - 2025-09-16
+
+### 🐛 Bug Fixes
+
+- *(ci)* Correctly handle 'nothing to bump' scenario ([a69cfd7](https://github.com/vofronte/vue-glimpse/commit/a69cfd71a3d2f288b63a418b294afdd1aa3a622b))
 ## [0.1.3](https://github.com/vofronte/vue-glimpse/compare/v0.1.2...v0.1.3) - 2025-09-16
 
 ### 🐛 Bug Fixes
