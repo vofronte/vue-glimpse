@@ -15,14 +15,13 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    if: "contains(github.event.head_commit.message, '[skip ci]') == false && (github.ref == 'refs/heads/main' && contains(toJson(github.event.commits), '.changeset/'))"
+    if: "contains(github.event.head_commit.message, '[skip ci]') == false && !contains(github.event.head_commit.message, 'chore(release)')"
 
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -37,25 +36,42 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Bump Version and Update Changelog
-        id: version
+      - name: Determine Next Version
+        id: cliff
         run: |
-          bun changeset version
-          echo "VERSION=$(cat package.json | jq -r .version)" >> $GITHUB_OUTPUT
+          VERSION=$(bunx git-cliff --bumped-version)
+          if [ -z "$VERSION" ]; then
+            echo "No new version determined. Skipping release."
+            echo "SKIP=true" >> $GITHUB_OUTPUT
+          else
+            echo "New version is $VERSION"
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          fi
 
-      - name: Commit Version Changes
+      - name: Generate Changelog and Bump Version
+        if: steps.cliff.outputs.SKIP != 'true'
         run: |
-          git add .
-          git commit -m "chore(release): v${{ steps.version.outputs.VERSION }}"
+          bunx git-cliff --bump --output CHANGELOG.md --tag ${{ steps.cliff.outputs.VERSION }}
+          bun pm version ${{ steps.cliff.outputs.VERSION }} --no-git-tag-version
 
-      - name: Push Changes and Tags
-        run: git push --follow-tags
+      - name: Commit and Push Changes
+        if: steps.cliff.outputs.SKIP != 'true'
+        run: |
+          git add CHANGELOG.md package.json bun.lockb
+          git commit -m "chore(release): v${{ steps.cliff.outputs.VERSION }}"
+          git tag "v${{ steps.cliff.outputs.VERSION }}"
+          git push && git push --tags
 
       - name: Publish to Marketplace
+        if: steps.cliff.outputs.SKIP != 'true'
         run: bun run release
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
 
       - name: Create GitHub Release
+        if: steps.cliff.outputs.SKIP != 'true'
         run: |
-          bunx changelog-github --token ${{ secrets.GITHUB_TOKEN }} --tag v${{ steps.version.outputs.VERSION }}
+          RELEASE_NOTES=$(bunx git-cliff --latest --strip header --strip footer)
+          gh release create "v${{ steps.cliff.outputs.VERSION }}" --notes "${RELEASE_NOTES}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

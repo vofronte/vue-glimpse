@@ -3,7 +3,7 @@
   "name": "vue-glimpse",
   "displayName": "VueGlimpse",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "Instantly see the origin of your Vue template variables (props, state, etc.) without leaving your HTML.",
   "author": "vofronte",
   "license": "SEE LICENSE IN LICENSE",
@@ -76,8 +76,6 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "changeset": "changeset",
-    "version": "changeset version",
     "release": "bun run package-prod && bun run publish",
     "prepare": "simple-git-hooks"
   },
@@ -87,22 +85,21 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^5.3.0",
-    "@changesets/changelog-github": "^0.5.1",
-    "@changesets/cli": "^2.29.7",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@types/mocha": "^10.0.10",
-    "@types/node": "22.18.3",
+    "@types/node": "22.18.4",
     "@types/vscode": "^1.88.0",
     "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.6.0",
     "eslint": "^9.35.0",
+    "git-cliff": "^2.10.0",
     "lint-staged": "^16.1.6",
     "npm-run-all2": "^8.0.4",
     "simple-git-hooks": "^2.13.1",
     "typescript": "^5.9.2",
-    "vite": "^5.4.20"
+    "vite": "^7.1.5"
   },
   "simple-git-hooks": {
     "pre-commit": "bunx lint-staged",
