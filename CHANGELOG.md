@@ -1,6 +1,9 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.1.2](https://github.com/vofronte/vue-glimpse/compare/v0.1.1...v0.1.2) - 2025-09-16
+### ci
+- **release:** Handle 'v' prefix in versioning ([3e6409d](https://github.com/vofronte/vue-glimpse/commit/3e6409d93cb3eed4572db4a039cb440a3f5df8cf))
 ## [0.1.1](https://github.com/vofronte/vue-glimpse/compare/v0.1.0...v0.1.1) - 2025-09-16
 ### ci
 - **release:** Streamline versioning and release notes generation ([b8ff32f](https://github.com/vofronte/vue-glimpse/commit/b8ff32f4fc3b398ed87000b854bc87fa6fc45294))
