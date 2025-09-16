@@ -31,7 +31,7 @@ So you scroll. You jump to the `<script setup>`, find the variable, and jump bac
 **VueGlimpse eliminates these jumps.** It gives you immediate, at-a-glance insight into your data's origin, right where you're working—inside your `<template>`.
 
 <p align="center">
-  <img src="https://github.com/vofronte/vue-glimpse/blob/main/media/demo.gif" alt="VueGlimpse in action (demo)">
+  <img src="https://github.com/vofronte/vue-glimpse/blob/main/media/demo.gif?raw=true" alt="VueGlimpse in action (demo)">
 </p>
 
 ## How It Solves Your Pain
