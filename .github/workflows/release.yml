@@ -39,17 +39,17 @@ jobs:
       - name: Determine Next Version
         id: cliff
         run: |
-          # Get the proposed version. If no new version, this will be empty.
-          BUMPED_VERSION=$(bunx git-cliff --bumped-version)
+          # We capture both stdout and stderr to check for the "nothing to bump" warning.
+          CLIFF_OUTPUT=$(bunx git-cliff --bumped-version 2>&1)
 
-          if [ -n "$BUMPED_VERSION" ]; then
-            echo "New version determined: $BUMPED_VERSION"
-            echo "HAS_NEW_VERSION=true" >> $GITHUB_OUTPUT
-            echo "TAG=$BUMPED_VERSION" >> $GITHUB_OUTPUT
-            echo "VERSION=${BUMPED_VERSION#v}" >> $GITHUB_OUTPUT
-          else
-            echo "No new version determined. Nothing to do."
+          if [[ "$CLIFF_OUTPUT" == *"There is nothing to bump"* ]]; then
+            echo "No new version determined by git-cliff. Skipping release."
             echo "HAS_NEW_VERSION=false" >> $GITHUB_OUTPUT
+          else
+            echo "New version determined: $CLIFF_OUTPUT"
+            echo "HAS_NEW_VERSION=true" >> $GITHUB_OUTPUT
+            echo "TAG=$CLIFF_OUTPUT" >> $GITHUB_OUTPUT
+            echo "VERSION=${CLIFF_OUTPUT#v}" >> $GITHUB_OUTPUT
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -58,7 +58,7 @@ jobs:
         if: steps.cliff.outputs.HAS_NEW_VERSION == 'true'
         run: |
           bunx git-cliff --bump --output CHANGELOG.md --tag ${{ steps.cliff.outputs.TAG }}
-          bun pm version ${{ steps.cliff.outputs.VERSION }} --no-git-tag-version
+          bun pm version ${{ steps.cliff.outputs.VERSION }} --no-git-tag-version --allow-same-version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
