@@ -39,53 +39,47 @@ jobs:
       - name: Determine Next Version
         id: cliff
         run: |
-          # Get the proposed version from git-cliff (e.g., v0.1.1)
+          # Get the proposed version. If no new version, this will be empty.
           BUMPED_VERSION=$(bunx git-cliff --bumped-version)
 
-          if [ -z "$BUMPED_VERSION" ]; then
-            echo "No new version determined. Skipping release."
-            echo "SKIP=true" >> $GITHUB_OUTPUT
-          else
-            # Store the version WITH 'v' for Git operations
+          if [ -n "$BUMPED_VERSION" ]; then
+            echo "New version determined: $BUMPED_VERSION"
+            echo "HAS_NEW_VERSION=true" >> $GITHUB_OUTPUT
             echo "TAG=$BUMPED_VERSION" >> $GITHUB_OUTPUT
-            # Store the version WITHOUT 'v' for package.json
-            CLEAN_VERSION=${BUMPED_VERSION#v}
-            echo "VERSION=$CLEAN_VERSION" >> $GITHUB_OUTPUT
-            echo "Determined next version: $CLEAN_VERSION"
+            echo "VERSION=${BUMPED_VERSION#v}" >> $GITHUB_OUTPUT
+          else
+            echo "No new version determined. Nothing to do."
+            echo "HAS_NEW_VERSION=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Generate Changelog and Bump Version
-        if: steps.cliff.outputs.SKIP != 'true'
+        if: steps.cliff.outputs.HAS_NEW_VERSION == 'true'
         run: |
-          # Generate changelog for the tag WITH 'v'
           bunx git-cliff --bump --output CHANGELOG.md --tag ${{ steps.cliff.outputs.TAG }}
-          # Update package.json with the clean version WITHOUT 'v'
           bun pm version ${{ steps.cliff.outputs.VERSION }} --no-git-tag-version
 
       - name: Commit and Push Changes
-        if: steps.cliff.outputs.SKIP != 'true'
+        if: steps.cliff.outputs.HAS_NEW_VERSION == 'true'
         run: |
           git add .
           if git diff --staged --quiet; then
-            echo "No changes to commit."
+            echo "No file changes to commit."
           else
-            # Commit and tag WITH 'v'
             git commit -m "chore(release): ${{ steps.cliff.outputs.TAG }}"
             git tag "${{ steps.cliff.outputs.TAG }}"
             git push && git push --tags
           fi
 
       - name: Publish to Marketplace
-        if: steps.cliff.outputs.SKIP != 'true'
+        if: steps.cliff.outputs.HAS_NEW_VERSION == 'true'
         run: bun run release
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
 
       - name: Create GitHub Release
-        if: steps.cliff.outputs.SKIP != 'true'
+        if: steps.cliff.outputs.HAS_NEW_VERSION == 'true'
         run: |
           RELEASE_NOTES=$(bunx git-cliff --latest --strip all)
-          # Create release for the tag WITH 'v'
           gh release create "${{ steps.cliff.outputs.TAG }}" --notes "${RELEASE_NOTES}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
