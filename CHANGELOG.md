@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.1.5](https://github.com/vofronte/vue-glimpse/compare/v0.1.4...v0.1.5) - 2025-09-16
+
+### 🐛 Bug Fixes
+
+- *(docs)* Final polish on README before release ([9ba5825](https://github.com/vofronte/vue-glimpse/commit/9ba58250684a5e272dcdb5a2a9343995971dce5c))
 ## [0.1.4](https://github.com/vofronte/vue-glimpse/compare/v0.1.3...v0.1.4) - 2025-09-16
 
 ### 🐛 Bug Fixes
