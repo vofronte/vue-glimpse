@@ -51,12 +51,16 @@ jobs:
             echo "No new version determined. Nothing to do."
             echo "HAS_NEW_VERSION=false" >> $GITHUB_OUTPUT
           fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate Changelog and Bump Version
         if: steps.cliff.outputs.HAS_NEW_VERSION == 'true'
         run: |
           bunx git-cliff --bump --output CHANGELOG.md --tag ${{ steps.cliff.outputs.TAG }}
           bun pm version ${{ steps.cliff.outputs.VERSION }} --no-git-tag-version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit and Push Changes
         if: steps.cliff.outputs.HAS_NEW_VERSION == 'true'
