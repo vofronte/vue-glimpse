@@ -70,7 +70,7 @@
     "watch": "bun --bun npm-run-all -p watch:*",
     "watch:vite": "vite build --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "vsce package",
+    "package": "vsce package --no-dependencies",
     "package-prod": "vite build --mode production",
     "publish": "vsce publish",
     "check-types": "tsc --noEmit",

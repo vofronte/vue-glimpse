@@ -9,6 +9,3 @@
 !README.md
 !LICENSE
 !icon.png
-
-# Also include the source map for better error reporting
-!out/extension.cjs.map

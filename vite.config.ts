@@ -1,5 +1,9 @@
+import { builtinModules } from 'node:module'
 import process from 'node:process'
 import { defineConfig } from 'vite'
+
+const builtins = builtinModules.filter(m => !m.startsWith('_'))
+const builtinsWithNodePrefix = builtins.map(m => `node:${m}`)
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -14,10 +18,8 @@ export default defineConfig({
     rollupOptions: {
       external: [
         'vscode',
-        '@vue/compiler-sfc',
-        '@vue/compiler-dom',
-        'typescript',
-        /^node:/,
+        ...builtins,
+        ...builtinsWithNodePrefix,
       ],
     },
     target: 'node16',
