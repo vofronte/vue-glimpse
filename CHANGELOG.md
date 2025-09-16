@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.1.6](https://github.com/vofronte/vue-glimpse/compare/v0.1.5...v0.1.6) - 2025-09-16
+
+### 🐛 Bug Fixes
+
+- *(docs)* Update demo GIF URL for direct display ([7fe5f45](https://github.com/vofronte/vue-glimpse/commit/7fe5f457401ddc7bed867f9013d36e6dfbc7788e))
 ## [0.1.5](https://github.com/vofronte/vue-glimpse/compare/v0.1.4...v0.1.5) - 2025-09-16
 
 ### 🐛 Bug Fixes
