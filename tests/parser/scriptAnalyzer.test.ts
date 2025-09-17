@@ -25,4 +25,21 @@ describe('scriptAnalyzer', () => {
     expect(result.ref.has('someRef')).toBe(true)
     expect(result.props.has('someRef')).toBe(false)
   })
+
+  it('should correctly identify reactive state from binding metadata', () => {
+    const mockScriptBlock = {
+      bindings: {
+        myState: BindingTypes.SETUP_REACTIVE_CONST,
+      },
+    } as unknown as SFCScriptBlock
+
+    const result = analyzeScript(mockScriptBlock, '')
+
+    expect(result.reactive).toBeDefined()
+    expect(result.reactive.size).toBe(1)
+    expect(result.reactive.has('myState')).toBe(true)
+
+    expect(result.props.has('myState')).toBe(false)
+    expect(result.ref.has('myState')).toBe(false)
+  })
 })
