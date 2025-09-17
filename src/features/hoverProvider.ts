@@ -1,6 +1,6 @@
 import type { CancellationToken, Hover, HoverProvider, Position, TextDocument } from 'vscode'
 import type { AnalysisManager } from '../analysis/AnalysisManager.js'
-import { MarkdownString, Hover as VsCodeHover } from 'vscode'
+import { MarkdownString, Hover as VsCodeHover, workspace } from 'vscode'
 import { IDENTIFIER_CATEGORIES } from '../identifierCategories.js'
 
 /**
@@ -19,6 +19,11 @@ export class VueGlimpseHoverProvider implements HoverProvider {
    * @returns A VS Code Hover object or undefined if no information is found.
    */
   public provideHover(document: TextDocument, position: Position, _token: CancellationToken): Hover | undefined {
+    // Check the configuration at the very beginning.
+    const config = workspace.getConfiguration('vueGlimpse')
+    if (!config.get<boolean>('hovers.enabled')) {
+      return // Silently exit if hovers are disabled.
+    }
     // Immediately return if the extension is disabled or for non-Vue files
     if (document.languageId !== 'vue') {
       return

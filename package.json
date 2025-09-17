@@ -70,6 +70,11 @@
           "type": "boolean",
           "default": true,
           "description": "Enables or disables the VueGlimpse extension."
+        },
+        "vueGlimpse.hovers.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enables or disables hover tooltips that show the origin of Vue variables."
         }
       }
     }

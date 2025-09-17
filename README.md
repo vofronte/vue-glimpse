@@ -24,7 +24,7 @@
   <img src="https://github.com/vofronte/vue-glimpse/blob/main/media/demo.gif?raw=true" alt="VueGlimpse in action (demo)">
 </p>
 
-VueGlimpse is a VS Code extension for **Vue & Nuxt** that ends the constant scrolling and context-switching when working in large components. It shows you exactly where your template variables originate—be it `props`, `ref`, a `store`, or a local `const`—with subtle, at-a-glance icons. Stay in your flow and understand your component's data source instantly.
+VueGlimpse is a VS Code extension for **Vue & Nuxt** that ends the constant scrolling and context-switching when working in large components. It shows you exactly where your template variables originate—be it `props`, `ref`, a `store`, or a local `const`—with subtle, at-a-glance icons, and provides clean, context-aware tooltips on hover. Stay in your flow and understand your component's data source instantly.
 
 ## Table of Contents
 
@@ -32,6 +32,7 @@ VueGlimpse is a VS Code extension for **Vue & Nuxt** that ends the constant scro
 - [Features](#features)
 - [The Legend: Icon Guide](#the-legend-icon-guide)
 - [Getting Started](#getting-started)
+- [Configuration](#configuration)
 - [Community](#community)
 
 ## Why VueGlimpse?
@@ -48,12 +49,12 @@ Each question forces a jump to the `<script setup>`, breaking your concentration
 
 ## Features
 
--   **Future-Ready for Vue & Nuxt:** Built for the modern Vue ecosystem (Vue 3+, Nuxt 3+).
--   **At-a-glance Origin Indicators:** Subtle, intuitive icons tell you the source of your data.
+-   **At-a-glance Origin Indicators:** Subtle icons in your template tell you the source of your data.
+-   **Minimalist Hovers:** Instantly identify a variable's origin (`Prop`, `Ref`, etc.) on hover-no code, just context.
 -   **Compiler-Level Accuracy:** Powered by `@vue/compiler-sfc` for guaranteed correctness.
--   **Full Component API Visibility:** Identifies `props`, `emits`, `attrs`, `slots`, `ref`, `reactive`, `computed`, and store patterns.
--   **Blazing Fast:** Intelligent caching ensures analysis only runs when needed.
--   **Zero Configuration:** Install it and it just works.
+-   **Full API Visibility:** Identifies the entire Vue Composition API, including stores and passthrough attributes.
+-   **Blazing Fast:** Intelligent caching ensures zero performance impact.
+-   **Configurable:** Toggle icons and hovers to fit your workflow.
 
 ## The Legend: Icon Guide
 
@@ -84,13 +85,19 @@ A simple, intuitive icon set helps you decode your template instantly.
 
 VueGlimpse activates for `.vue` files. This requires a language support extension like [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (which you likely already have).
 
-### 3. Configuration (Optional)
+## Configuration
 
-The extension works out of the box. To disable it, change this setting in your `settings.json`:
+VueGlimpse is designed to work out of the box, but you can tailor its features to your workflow.
 
+| Setting                   | Description                                                 | Default |
+| ------------------------- | ----------------------------------------------------------- | :-----: |
+| `vueGlimpse.enabled`        | Globally enables or disables all features (icons & hovers). | `true`  |
+| `vueGlimpse.hovers.enabled` | Toggles the origin identifier tooltip on hover.             | `true`  |
+
+To change a setting, add it to your `settings.json` file. For example, to disable hovers:
 ```json
 {
-  "vueGlimpse.enabled": false
+  "vueGlimpse.hovers.enabled": false
 }
 ```
 
