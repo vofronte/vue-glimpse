@@ -1,10 +1,12 @@
 import type { TextEditorDecorationType } from 'vscode'
+import type { IdentifierCategoryKey } from './parser/types.js'
 import { ThemeColor, window } from 'vscode'
+import { CATEGORY_ICONS } from './categoryConfig.js'
 
 /**
- * Creates a text editor decoration type with a specified icon and color.
- * @param icon The icon to display after the text.
- * @param colorId The theme color ID to use for the icon.
+ * A private factory function to create a single decoration type.
+ * @param icon The icon character to display.
+ * @param colorId The theme color ID.
  * @returns A TextEditorDecorationType instance.
  */
 function createDecoration(icon: string, colorId: string): TextEditorDecorationType {
@@ -17,21 +19,25 @@ function createDecoration(icon: string, colorId: string): TextEditorDecorationTy
   })
 }
 
-/** Decoration for component props. */
-export const propDecorationType = createDecoration('℗', 'gitDecoration.modifiedResourceForeground')
-/** Decoration for local state variables. */
-export const localStateDecorationType = createDecoration('•', 'editorHint.foreground')
-/** Decoration for Vue refs. */
-export const refDecorationType = createDecoration('🔹', 'gitDecoration.renamedResourceForeground')
-/** Decoration for Vue reactive objects. */
-export const reactiveDecorationType = createDecoration('🔷', 'gitDecoration.renamedResourceForeground')
-/** Decoration for Vue computed properties. */
-export const computedDecorationType = createDecoration('⚡', 'gitDecoration.renamedResourceForeground')
-/** Decoration for component methods. */
-export const methodDecorationType = createDecoration('ƒ', 'gitDecoration.untrackedResourceForeground')
-/** Decoration for store-related properties (e.g., Vuex, Pinia). */
-export const storeDecorationType = createDecoration('📦', 'gitDecoration.conflictingResourceForeground')
-/** Decoration for component emits. */
-export const emitDecorationType = createDecoration('📤', 'gitDecoration.addedResourceForeground')
-/** Decoration for passthrough attributes and slots ($attrs, $slots). */
-export const passthroughDecorationType = createDecoration('📥', 'gitDecoration.ignoredResourceForeground')
+// A map of categories to their theme color IDs.
+const DECORATION_COLORS: Record<IdentifierCategoryKey, string> = {
+  props: 'gitDecoration.modifiedResourceForeground',
+  localState: 'editorHint.foreground',
+  ref: 'gitDecoration.renamedResourceForeground',
+  reactive: 'gitDecoration.renamedResourceForeground',
+  computed: 'gitDecoration.renamedResourceForeground',
+  methods: 'gitDecoration.untrackedResourceForeground',
+  store: 'gitDecoration.conflictingResourceForeground',
+  emits: 'gitDecoration.addedResourceForeground',
+  passthrough: 'gitDecoration.ignoredResourceForeground',
+}
+
+/**
+ * A programmatically generated map of all decoration types.
+ * This is the single exported object from this module.
+ * It is created by mapping over our single source of truth for icons.
+ */
+export const DECORATIONS = (Object.keys(CATEGORY_ICONS) as IdentifierCategoryKey[]).reduce((acc, key) => {
+  acc[key] = createDecoration(CATEGORY_ICONS[key], DECORATION_COLORS[key])
+  return acc
+}, {} as Record<IdentifierCategoryKey, TextEditorDecorationType>)

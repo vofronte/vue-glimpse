@@ -1,6 +1,7 @@
 import type { ExtensionContext, TextEditor } from 'vscode'
 import { languages, window, workspace } from 'vscode'
 import { AnalysisManager } from './analysis/AnalysisManager.js'
+import { DECORATIONS } from './decorators.js'
 import { VueGlimpseHoverProvider } from './features/hoverProvider.js'
 import { IDENTIFIER_CATEGORIES } from './identifierCategories.js'
 import { log } from './utils/logger.js'
@@ -76,14 +77,13 @@ export function activate(context: ExtensionContext) {
     const document = activeEditor.document
 
     if (document.languageId !== 'vue') {
-      // Clear ALL decoration types if the file is not a Vue component
-      for (const category of IDENTIFIER_CATEGORIES) {
-        activeEditor.setDecorations(category.decoration, [])
+      // Use the new DECORATIONS map to clear all decoration types if the file is not a Vue component
+      for (const decoration of Object.values(DECORATIONS)) {
+        activeEditor.setDecorations(decoration, [])
       }
       return
     }
 
-    // Get analysis result from our powerful, cached manager
     const analysisResult = analysisManager.getAnalysis(document)
 
     // Apply decorations for each category using the new result structure
