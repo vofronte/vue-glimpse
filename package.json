@@ -15,30 +15,39 @@
   "bugs": {
     "url": "https://github.com/vofronte/vue-glimpse/issues"
   },
-  "sponsor": {
-    "url": "https://github.com/sponsors/vofronte"
-  },
   "galleryBanner": {
     "color": "#228d6a",
     "theme": "dark"
   },
   "keywords": [
     "vue",
-    "nuxt",
     "vue3",
+    "nuxt",
     "nuxt3",
-    "nuxt4",
     "script setup",
+    " vscode",
+    "productivity",
+    "developer experience",
+    "dx",
+    "workflow",
+    "developer tools",
+    "visualization",
+    "inline hints",
+    "decorators",
+    "origin",
+    "source",
+    "binding",
+    "metadata",
+    "context",
     "props",
     "ref",
     "reactive",
     "computed",
-    "origin",
-    "source",
-    "glimpse",
+    "store",
+    "emits",
     "lens",
-    "productivity",
-    "developer tools"
+    "peek",
+    "glimpse"
   ],
   "categories": [
     "Visualization",
