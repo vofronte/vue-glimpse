@@ -78,7 +78,7 @@
     "vscode:prepublish": "bun package-prod",
     "compile": "vite build",
     "watch": "bun --bun npm-run-all -p watch:*",
-    "watch:vite": "vite build --watch",
+    "watch:vite": "vite build --watch --mode development",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "package": "vsce package --no-dependencies",
     "package-prod": "vite build --mode production",
