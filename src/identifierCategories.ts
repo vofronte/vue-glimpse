@@ -19,6 +19,8 @@ import {
 export interface IdentifierCategory {
   key: IdentifierCategoryKey
   decoration: TextEditorDecorationType
+  icon: string
+  label: string
   scriptProperty: keyof ScriptIdentifiers
   resultProperty: keyof Omit<AnalysisResult, 'scriptIdentifiers'>
 }
@@ -46,7 +48,30 @@ const CATEGORY_DECORATIONS: Record<IdentifierCategoryKey, TextEditorDecorationTy
   localState: localStateDecorationType,
 }
 
-// Step 2: An explicit array defining the priority order for analysis.
+const CATEGORY_ICONS: Record<IdentifierCategoryKey, string> = {
+  props: '℗',
+  passthrough: '📥',
+  emits: '📤',
+  ref: '🔹',
+  reactive: '🔷',
+  computed: '⚡',
+  store: '📦',
+  methods: 'ƒ',
+  localState: '•',
+}
+
+const CATEGORY_LABELS: Record<IdentifierCategoryKey, string> = {
+  props: 'Prop',
+  passthrough: 'Passthrough',
+  emits: 'Emit',
+  ref: 'Ref',
+  reactive: 'Reactive',
+  computed: 'Computed Property',
+  store: 'Store State',
+  methods: 'Method',
+  localState: 'Local Variable',
+}
+
 const CATEGORY_PRIORITY: IdentifierCategoryKey[] = [
   'emits',
   'passthrough',
@@ -64,6 +89,8 @@ const CATEGORY_PRIORITY: IdentifierCategoryKey[] = [
 export const IDENTIFIER_CATEGORIES: IdentifierCategory[] = CATEGORY_PRIORITY.map(key => ({
   key,
   decoration: CATEGORY_DECORATIONS[key],
+  icon: CATEGORY_ICONS[key],
+  label: CATEGORY_LABELS[key],
   scriptProperty: key,
   resultProperty: `${key}Ranges`,
 }))

@@ -41,13 +41,14 @@ export class VueGlimpseHoverProvider implements HoverProvider {
       const identifierMap = analysisResult.scriptIdentifiers[category.key]
       if (identifierMap.has(hoveredWord)) {
         const details = identifierMap.get(hoveredWord)
-        if (details?.definition) {
+        if (details) {
           const markdown = new MarkdownString()
-          // Display the definition in a TypeScript code block for syntax highlighting
-          markdown.appendCodeblock(details.definition, 'typescript')
+
+          markdown.appendMarkdown(`\`${category.icon} ${category.label}\``)
+
           return new VsCodeHover(markdown, wordRange)
         }
-        // Found the word but no details, so stop searching.
+
         return
       }
     }
