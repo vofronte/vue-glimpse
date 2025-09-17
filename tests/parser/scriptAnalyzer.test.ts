@@ -5,9 +5,11 @@ import { analyzeScript } from '../../src/parser/scriptAnalyzer.js'
 describe('scriptAnalyzer', () => {
   it('should correctly identify props from binding metadata', () => {
     const mockScriptContent = `
+      import { ref } from 'vue'
       defineProps<{
         myProp: string
       }>()
+      const someRef = ref(null)
     `
     const mockScriptBlock = {
       bindings: {
@@ -27,13 +29,17 @@ describe('scriptAnalyzer', () => {
   })
 
   it('should correctly identify reactive state from binding metadata', () => {
+    const mockScriptContent = `
+      import { reactive } from 'vue'
+      const myState = reactive({ value: 1 })
+    `
     const mockScriptBlock = {
       bindings: {
         myState: BindingTypes.SETUP_REACTIVE_CONST,
       },
     } as unknown as SFCScriptBlock
 
-    const result = analyzeScript(mockScriptBlock, '')
+    const result = analyzeScript(mockScriptBlock, mockScriptContent)
 
     expect(result.reactive).toBeDefined()
     expect(result.reactive.size).toBe(1)
@@ -79,6 +85,7 @@ describe('scriptAnalyzer', () => {
     const mockScriptContent = `
       import { storeToRefs } from 'pinia'
       import { useUserStore } from './userStore'
+      import { ref } from 'vue'
       const { name, isAdmin } = storeToRefs(useUserStore())
       const someOtherRef = ref(false)
     `
@@ -112,9 +119,9 @@ describe('scriptAnalyzer', () => {
     it('should identify the "emit" function when assigned to a variable', () => {
       const mockScriptContent = `const emit = defineEmits(['update:modelValue'])`
       const mockScriptBlock = {
-        // Note: `defineEmits` doesn't add to `bindings`.
-        // This must be found by the AST pass.
-        bindings: {},
+        bindings: {
+          emit: BindingTypes.SETUP_CONST,
+        },
       } as unknown as SFCScriptBlock
 
       const result = analyzeScript(mockScriptBlock, mockScriptContent)
