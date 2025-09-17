@@ -42,4 +42,36 @@ describe('scriptAnalyzer', () => {
     expect(result.props.has('myState')).toBe(false)
     expect(result.ref.has('myState')).toBe(false)
   })
+
+  it('should distinguish methods from local constants using AST analysis', () => {
+    const mockScriptContent = `
+      const myArrowMethod = () => {}
+      function myFuncDeclMethod() {}
+      const myLocal = 123
+    `
+    const mockScriptBlock = {
+      // Note: All three are marked as SETUP_CONST by the Vue compiler.
+      // Our analyzer must look at the AST to tell them apart.
+      bindings: {
+        myArrowMethod: BindingTypes.SETUP_CONST,
+        myFuncDeclMethod: BindingTypes.SETUP_CONST,
+        myLocal: BindingTypes.SETUP_CONST,
+      },
+    } as unknown as SFCScriptBlock
+
+    const result = analyzeScript(mockScriptBlock, mockScriptContent)
+
+    // Check methods
+    expect(result.methods.size).toBe(2)
+    expect(result.methods.has('myArrowMethod')).toBe(true)
+    expect(result.methods.has('myFuncDeclMethod')).toBe(true)
+
+    // Check local state
+    expect(result.localState.size).toBe(1)
+    expect(result.localState.has('myLocal')).toBe(true)
+
+    // Ensure no cross-contamination
+    expect(result.methods.has('myLocal')).toBe(false)
+    expect(result.localState.has('myArrowMethod')).toBe(false)
+  })
 })
