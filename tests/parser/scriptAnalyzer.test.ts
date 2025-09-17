@@ -136,4 +136,31 @@ describe('scriptAnalyzer', () => {
       expect(result.emits.has('emit')).toBe(true)
     })
   })
+
+  describe('passthrough identifiers', () => {
+    it('should identify variables from useAttrs() and useSlots()', () => {
+      const mockScriptContent = `
+        const attrs = useAttrs()
+        const slots = useSlots()
+      `
+      const mockScriptBlock = {
+        // The Vue compiler sees these as plain constants.
+        // Our AST pass is responsible for identifying their special nature.
+        bindings: {
+          attrs: BindingTypes.SETUP_CONST,
+          slots: BindingTypes.SETUP_CONST,
+        },
+      } as unknown as SFCScriptBlock
+
+      const result = analyzeScript(mockScriptBlock, mockScriptContent)
+
+      expect(result.passthrough.size).toBe(2)
+      expect(result.passthrough.has('attrs')).toBe(true)
+      expect(result.passthrough.has('slots')).toBe(true)
+
+      // Ensure they were not misclassified as simple local state.
+      expect(result.localState.has('attrs')).toBe(false)
+      expect(result.localState.has('slots')).toBe(false)
+    })
+  })
 })
