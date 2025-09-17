@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.3.1](https://github.com/vofronte/vue-glimpse/compare/v0.3.0...v0.3.1) - 2025-09-17
+
+### 🐛 Bug Fixes
+
+- *(rollup)* Externalize node built-ins with 'node:' prefix ([0b051dd](https://github.com/vofronte/vue-glimpse/commit/0b051dd47e577c6e40f728b5374108ddb7f74eec))
 ## [0.3.0](https://github.com/vofronte/vue-glimpse/compare/v0.2.0...v0.3.0) - 2025-09-17
 
 ### ✨ Features
