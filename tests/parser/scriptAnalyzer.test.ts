@@ -74,4 +74,37 @@ describe('scriptAnalyzer', () => {
     expect(result.methods.has('myLocal')).toBe(false)
     expect(result.localState.has('myArrowMethod')).toBe(false)
   })
+
+  it('should identify store variables from storeToRefs and prioritize them over refs', () => {
+    const mockScriptContent = `
+      import { storeToRefs } from 'pinia'
+      import { useUserStore } from './userStore'
+      const { name, isAdmin } = storeToRefs(useUserStore())
+      const someOtherRef = ref(false)
+    `
+    const mockScriptBlock = {
+      // Note: storeToRefs creates refs, so compileScript reports them as SETUP_REF.
+      // Our AST pass must correctly identify them as store variables and give them priority.
+      bindings: {
+        name: BindingTypes.SETUP_REF,
+        isAdmin: BindingTypes.SETUP_REF,
+        someOtherRef: BindingTypes.SETUP_REF,
+      },
+    } as unknown as SFCScriptBlock
+
+    const result = analyzeScript(mockScriptBlock, mockScriptContent)
+
+    // Check that store variables are correctly identified.
+    expect(result.store.size).toBe(2)
+    expect(result.store.has('name')).toBe(true)
+    expect(result.store.has('isAdmin')).toBe(true)
+
+    // Check that the regular ref is still identified correctly.
+    expect(result.ref.size).toBe(1)
+    expect(result.ref.has('someOtherRef')).toBe(true)
+
+    // Crucially, ensure the store variables were NOT classified as refs.
+    expect(result.ref.has('name')).toBe(false)
+    expect(result.ref.has('isAdmin')).toBe(false)
+  })
 })
