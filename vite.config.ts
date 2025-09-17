@@ -1,12 +1,17 @@
 import { builtinModules } from 'node:module'
 import process from 'node:process'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 
 const builtins = builtinModules.filter(m => !m.startsWith('_'))
 const builtinsWithNodePrefix = builtins.map(m => `node:${m}`)
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'node',
+    include: ['tests/**/*.test.ts'],
+  },
   build: {
     outDir: 'out',
     emptyOutDir: true,

@@ -7,7 +7,7 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
-    "types": ["vscode", "node", "mocha"],
+    "types": ["vscode", "node", "vitest/globals"],
     "allowJs": true,
     "strict": true,
     "noEmit": true,
@@ -19,6 +19,7 @@
   },
   "include": [
     "src/**/*.ts",
+    "tests/**/*.ts",
     "vite.config.ts"
   ],
   "exclude": [
