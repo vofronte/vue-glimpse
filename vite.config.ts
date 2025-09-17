@@ -1,7 +1,7 @@
 import { builtinModules } from 'node:module'
 import { defineConfig } from 'vitest/config'
 
-const builtins = builtinModules.filter(m => !m.startsWith('_')).map(m => `node:${m}`)
+const nodeBuiltins = builtinModules.filter(m => !m.startsWith('_'))
 
 const devExternal = [
   '@vue/compiler-sfc',
@@ -27,14 +27,13 @@ export default defineConfig(({ mode }) => {
         formats: ['cjs'],
         fileName: 'extension',
       },
-
       sourcemap: !isProduction,
-
       minify: isProduction,
       rollupOptions: {
         external: [
           'vscode',
-          ...builtins,
+          ...nodeBuiltins,
+          ...nodeBuiltins.map(m => `node:${m}`),
           ...(isProduction ? [] : devExternal),
         ],
       },
