@@ -1,6 +1,7 @@
 import type { ExtensionContext, TextEditor } from 'vscode'
-import { window, workspace } from 'vscode'
+import { languages, window, workspace } from 'vscode'
 import { AnalysisManager } from './analysis/AnalysisManager.js'
+import { VueGlimpseHoverProvider } from './features/hoverProvider.js'
 import { IDENTIFIER_CATEGORIES } from './identifierCategories.js'
 import { log } from './utils/logger.js'
 
@@ -15,14 +16,21 @@ export function activate(context: ExtensionContext) {
 
   const analysisManager = new AnalysisManager()
 
+  // --- Register Hover Provider ---
+  // The hover provider is instantiated once and registered for the 'vue' language.
+  const hoverProvider = new VueGlimpseHoverProvider(analysisManager)
+  context.subscriptions.push(
+    languages.registerHoverProvider('vue', hoverProvider),
+  )
+
   // --- Event subscribers setup ---
 
-  // 1. When user changes active tab (editor)
+  // 1. Clear cache when a document is closed to prevent memory leaks
   context.subscriptions.push(
-    // Clear cache when a document is closed to prevent memory leaks
     workspace.onDidCloseTextDocument(doc => analysisManager.removeDocument(doc.uri.toString())),
   )
 
+  // 2. When user changes active tab (editor)
   context.subscriptions.push(
     window.onDidChangeActiveTextEditor((editor) => {
       activeEditor = editor
@@ -32,7 +40,7 @@ export function activate(context: ExtensionContext) {
     }),
   )
 
-  // 2. When user types in document
+  // 3. When user types in document
   context.subscriptions.push(
     workspace.onDidChangeTextDocument((event) => {
       // Update only if changes occurred in active editor
@@ -58,7 +66,7 @@ export function activate(context: ExtensionContext) {
   }
 
   /**
-   * Main "working" function: analyzes code and applies styles.
+   * Main "working" function: analyzes code and applies decoration styles.
    */
   function updateDecorations() {
     if (!activeEditor) {
@@ -68,24 +76,26 @@ export function activate(context: ExtensionContext) {
     const document = activeEditor.document
 
     if (document.languageId !== 'vue') {
-      // Clear ALL decoration types
+      // Clear ALL decoration types if the file is not a Vue component
       for (const category of IDENTIFIER_CATEGORIES) {
         activeEditor.setDecorations(category.decoration, [])
       }
       return
     }
 
-    // Get analysis result from our powerful manager
+    // Get analysis result from our powerful, cached manager
     const analysisResult = analysisManager.getAnalysis(document)
 
-    log(` > Found ${analysisResult.propRanges.length} props, ${analysisResult.localStateRanges.length} locals, ${analysisResult.refRanges.length} refs, ${analysisResult.reactiveRanges.length} reactives, ${analysisResult.computedRanges.length} computed, ${analysisResult.methodRanges.length} methods, ${analysisResult.storeRanges.length} from store, ${analysisResult.emitRanges.length} emits, ${analysisResult.passthroughRanges.length} passthroughs.`)
-
+    // Apply decorations for each category using the new result structure
     for (const category of IDENTIFIER_CATEGORIES) {
+      // Access the correct pluralized range property (e.g., 'propsRanges')
       const ranges = analysisResult[category.resultProperty]
+      // The filter is a safeguard against any potential null/undefined ranges
       activeEditor.setDecorations(category.decoration, ranges.filter(Boolean))
     }
   }
 
+  // Initial run for the currently active editor
   if (activeEditor) {
     triggerUpdateDecorations()
   }

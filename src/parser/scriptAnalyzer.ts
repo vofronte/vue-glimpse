@@ -1,21 +1,45 @@
 import type { SFCScriptBlock } from '@vue/compiler-sfc'
 import type { Node as TSNode } from 'typescript'
-import type { ScriptIdentifiers } from './types.js'
+import type { ScriptIdentifierDetails, ScriptIdentifiers } from './types.js'
 import { BindingTypes } from '@vue/compiler-dom'
 import {
   createSourceFile,
   forEachChild,
-  isArrowFunction,
   isCallExpression,
   isFunctionDeclaration,
-  isFunctionExpression,
   isIdentifier,
   isObjectBindingPattern,
   isVariableDeclaration,
   isVariableStatement,
   ScriptTarget,
+  SyntaxKind,
 } from 'typescript'
 import { log } from '../utils/logger.js'
+
+function getFullStatementText(node: TSNode, sourceFile: import('typescript').SourceFile): string {
+  let statementNode = node
+  while (statementNode.parent) {
+    if (isVariableStatement(statementNode) || isFunctionDeclaration(statementNode)) {
+      return statementNode.getText(sourceFile).trim()
+    }
+    statementNode = statementNode.parent
+  }
+  return node.getText(sourceFile).trim()
+}
+
+function createEmptyScriptIdentifiers(): ScriptIdentifiers {
+  return {
+    props: new Map(),
+    localState: new Map(),
+    ref: new Map(),
+    reactive: new Map(),
+    computed: new Map(),
+    methods: new Map(),
+    store: new Map(),
+    emits: new Map(),
+    passthrough: new Map(),
+  }
+}
 
 /**
  * Analyzes the binding metadata from `compileScript` and enhances it with
@@ -27,93 +51,106 @@ import { log } from '../utils/logger.js'
  * @returns An object containing sets of identified variable names.
  */
 export function analyzeScript(scriptBlock: SFCScriptBlock, originalContent: string): ScriptIdentifiers {
-  const identifiers: ScriptIdentifiers = {
-    props: new Set(),
-    localState: new Set(),
-    ref: new Set(),
-    reactive: new Set(),
-    computed: new Set(),
-    methods: new Set(),
-    store: new Set(),
-    emits: new Set(),
-    passthrough: new Set(),
-  }
-
-  if (!scriptBlock.bindings) {
-    log('No binding metadata found in script block.')
-    return identifiers
-  }
+  const identifiers = createEmptyScriptIdentifiers()
+  const bindings = scriptBlock.bindings || {}
 
   // --- Lightweight AST Pass on ORIGINAL Source ---
   // We parse the original content because macros like defineEmits are removed
   // by compileScript. This is the only reliable way to find them.
   const sourceFile = createSourceFile('component.ts', originalContent, ScriptTarget.Latest, true)
-  const methods = new Set<string>()
-  const computeds = new Set<string>()
-  const stores = new Set<string>()
-  const emits = new Set<string>()
-  const passthroughs = new Set<string>()
+  const processedNames = new Set<string>()
+
+  function categorize(name: string, bindingType: BindingTypes | undefined, details: ScriptIdentifierDetails) {
+    if (processedNames.has(name))
+      return
+
+    switch (bindingType) {
+      case BindingTypes.PROPS:
+      case BindingTypes.PROPS_ALIASED:
+        identifiers.props.set(name, details); break
+      case BindingTypes.SETUP_REF:
+      case BindingTypes.SETUP_MAYBE_REF:
+        identifiers.ref.set(name, details); break
+      case BindingTypes.SETUP_REACTIVE_CONST:
+        if (details.definition.includes('defineProps')) {
+          identifiers.props.set(name, { definition: 'const props = defineProps(...)' })
+        }
+        else {
+          identifiers.reactive.set(name, details)
+        }
+        break
+      case BindingTypes.SETUP_CONST:
+      case BindingTypes.SETUP_LET:
+      case BindingTypes.LITERAL_CONST:
+        identifiers.localState.set(name, details); break
+      default:
+        identifiers.localState.set(name, details)
+        break
+    }
+    processedNames.add(name)
+  }
 
   function astWalk(node: TSNode) {
-    if (isCallExpression(node) && isIdentifier(node.expression)) {
-      const callName = node.expression.text
-      log(`[VueGlimpse][AST Walk] Found call expression: ${callName}`)
+    if (isVariableStatement(node)) {
+      const fullStatementText = getFullStatementText(node, sourceFile)
+      for (const decl of node.declarationList.declarations) {
+        let handled = false
+        // Check for high-priority macros inside the declaration
+        if (decl.initializer && isCallExpression(decl.initializer) && isIdentifier(decl.initializer.expression)) {
+          const callName = decl.initializer.expression.text
+          const details = { definition: fullStatementText }
 
-      switch (callName) {
-        case 'defineEmits': {
-          if (node.parent && isVariableDeclaration(node.parent) && isIdentifier(node.parent.name)) {
-            const varName = node.parent.name.text
-            emits.add(varName)
-            log(`[VueGlimpse][AST Walk] Found 'defineEmits' assigned to variable: ${varName}`)
+          if (isIdentifier(decl.name)) {
+            const varName = decl.name.text
+            switch (callName) {
+              case 'defineEmits': identifiers.emits.set(varName, details); handled = true; break
+              case 'useAttrs': case 'useSlots': identifiers.passthrough.set(varName, details); handled = true; break
+              case 'computed': identifiers.computed.set(varName, details); handled = true; break
+              default:
+                if (/^use[A-Z].*Store$/.test(callName)) {
+                  identifiers.store.set(varName, details); handled = true
+                }
+            }
+            if (handled)
+              processedNames.add(varName)
           }
-          else {
-            emits.add('emit')
-            log(`[VueGlimpse][AST Walk] Found standalone 'defineEmits' call. Assuming implicit 'emit'.`)
-          }
-          break
-        }
-        case 'useAttrs':
-        case 'useSlots': {
-          if (node.parent && isVariableDeclaration(node.parent) && isIdentifier(node.parent.name)) {
-            passthroughs.add(node.parent.name.text)
-          }
-          break
-        }
-        case 'computed': {
-          if (node.parent && isVariableDeclaration(node.parent) && isIdentifier(node.parent.name)) {
-            computeds.add(node.parent.name.text)
-          }
-          break
-        }
-        case 'storeToRefs': {
-          if (node.parent && isVariableDeclaration(node.parent) && isObjectBindingPattern(node.parent.name)) {
-            for (const element of node.parent.name.elements) {
+          else if (isObjectBindingPattern(decl.name) && callName === 'storeToRefs') {
+            for (const element of decl.name.elements) {
               if (isIdentifier(element.name)) {
-                stores.add(element.name.text)
+                identifiers.store.set(element.name.text, details)
+                processedNames.add(element.name.text)
               }
             }
+            handled = true
           }
-          break
         }
-        default: {
-          if (/^use[A-Z].*Store$/.test(callName)) {
-            if (node.parent && isVariableDeclaration(node.parent) && isIdentifier(node.parent.name)) {
-              stores.add(node.parent.name.text)
-            }
+
+        // If not a special macro, handle as a generic variable
+        if (!handled && isIdentifier(decl.name)) {
+          const name = decl.name.text
+          const details = { definition: fullStatementText }
+          if (decl.initializer && (decl.initializer.kind === SyntaxKind.ArrowFunction || decl.initializer.kind === SyntaxKind.FunctionExpression)) {
+            identifiers.methods.set(name, details)
+            processedNames.add(name)
           }
-          break
+          else {
+            categorize(name, bindings[name], details)
+          }
         }
       }
     }
-
-    if (isFunctionDeclaration(node) && node.name) {
-      methods.add(node.name.text)
+    else if (isFunctionDeclaration(node) && node.name) {
+      const name = node.name.text
+      if (!processedNames.has(name)) {
+        identifiers.methods.set(name, { definition: getFullStatementText(node, sourceFile) })
+        processedNames.add(name)
+      }
     }
-    else if (isVariableStatement(node)) {
-      for (const decl of node.declarationList.declarations) {
-        if (isIdentifier(decl.name) && decl.initializer && (isArrowFunction(decl.initializer) || isFunctionExpression(decl.initializer))) {
-          methods.add(decl.name.text)
-        }
+    else if (isCallExpression(node) && isIdentifier(node.expression) && node.expression.text === 'defineEmits' && !isVariableDeclaration(node.parent)) {
+      // Standalone defineEmits()
+      if (!processedNames.has('emit')) {
+        identifiers.emits.set('emit', { definition: 'const emit = defineEmits(...)' })
+        processedNames.add('emit')
       }
     }
 
@@ -122,59 +159,25 @@ export function analyzeScript(scriptBlock: SFCScriptBlock, originalContent: stri
 
   astWalk(sourceFile)
 
-  // --- Manually add special identifiers found by AST Walk ---
-  // The implicit 'emit' is not in `bindings`, so we add it directly.
-  // For others (stores, computeds), this ensures they have the highest priority.
-  emits.forEach(e => identifiers.emits.add(e))
-  stores.forEach(s => identifiers.store.add(s))
-  computeds.forEach(c => identifiers.computed.add(c))
-  passthroughs.forEach(p => identifiers.passthrough.add(p))
-
-  // --- Process Bindings from Compiler ---
-  // This remains our primary source of truth for general binding types.
-  for (const [name, type] of Object.entries(scriptBlock.bindings)) {
-    if (typeof type !== 'string') {
-      continue
-    }
-
-    // If already categorized by our more specific AST pass, skip.
-    if (identifiers.emits.has(name) || identifiers.store.has(name) || identifiers.computed.has(name) || identifiers.passthrough.has(name)) {
-      continue
-    }
-
-    switch (type as unknown as BindingTypes) {
-      case BindingTypes.PROPS:
-        identifiers.props.add(name)
-        break
-
-      case BindingTypes.SETUP_REF:
-        // This includes ref(), shallowRef(), etc.
-        // We've already handled computed() specifically, so this is for regular refs.
-        identifiers.ref.add(name)
-        break
-
-      case BindingTypes.SETUP_REACTIVE_CONST:
-        // This is for reactive().
-        identifiers.reactive.add(name)
-        break
-
-      case BindingTypes.SETUP_CONST:
-        // Check if it's a function we identified.
-        if (methods.has(name)) {
-          identifiers.methods.add(name)
-        }
-        else {
-          identifiers.localState.add(name)
-        }
-        break
-
-      case BindingTypes.SETUP_MAYBE_REF:
-      case BindingTypes.SETUP_LET:
-      case BindingTypes.LITERAL_CONST:
-        identifiers.localState.add(name)
-        break
+  // Final sweep for props not declared via `const props = ...`
+  for (const [name, type] of Object.entries(bindings)) {
+    if (type === BindingTypes.PROPS && !processedNames.has(name)) {
+      identifiers.props.set(name, { definition: `prop: ${name}` })
+      processedNames.add(name)
     }
   }
+
+  log('Final analysis result:', {
+    props: [...identifiers.props.keys()],
+    ref: [...identifiers.ref.keys()],
+    reactive: [...identifiers.reactive.keys()],
+    computed: [...identifiers.computed.keys()],
+    methods: [...identifiers.methods.keys()],
+    store: [...identifiers.store.keys()],
+    emits: [...identifiers.emits.keys()],
+    passthrough: [...identifiers.passthrough.keys()],
+    localState: [...identifiers.localState.keys()],
+  })
 
   return identifiers
 }

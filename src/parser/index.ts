@@ -1,5 +1,5 @@
 import type { TextDocument } from 'vscode'
-import type { AnalysisResult } from './types.js'
+import type { AnalysisResult, ScriptIdentifiers } from './types.js'
 import { compileScript, parse } from '@vue/compiler-sfc'
 import { log, logError } from '../utils/logger.js'
 import { analyzeScript } from './scriptAnalyzer.js'
@@ -8,8 +8,40 @@ import { analyzeTemplate } from './templateAnalyzer.js'
 // A simple counter for a unique ID for compileScript
 let compileId = 0
 
+/**
+ * Creates an empty, fully initialized AnalysisResult object.
+ * This is used as a default/fallback return value.
+ * @returns An empty AnalysisResult.
+ */
+function createEmptyAnalysisResult(): AnalysisResult {
+  const emptyIdentifiers: ScriptIdentifiers = {
+    props: new Map(),
+    localState: new Map(),
+    ref: new Map(),
+    reactive: new Map(),
+    computed: new Map(),
+    methods: new Map(),
+    store: new Map(),
+    emits: new Map(),
+    passthrough: new Map(),
+  }
+
+  return {
+    propsRanges: [],
+    localStateRanges: [],
+    refRanges: [],
+    reactiveRanges: [],
+    computedRanges: [],
+    methodsRanges: [],
+    storeRanges: [],
+    emitsRanges: [],
+    passthroughRanges: [],
+    scriptIdentifiers: emptyIdentifiers,
+  }
+}
+
 export function analyzeVueFile(code: string, document: TextDocument): AnalysisResult {
-  const emptyResult: AnalysisResult = { propRanges: [], localStateRanges: [], refRanges: [], reactiveRanges: [], computedRanges: [], methodRanges: [], storeRanges: [], emitRanges: [], passthroughRanges: [] }
+  const emptyResult = createEmptyAnalysisResult()
 
   try {
     // Step 1: Parse the SFC to get the descriptor.
@@ -29,28 +61,18 @@ export function analyzeVueFile(code: string, document: TextDocument): AnalysisRe
       // Keep options minimal for performance.
     })
 
-    // Step 3: Analyze the script, providing both the compiled result (for bindings)
-    // and the original content (for finding macros like defineEmits).
+    // Step 3: Analyze the script to get detailed identifier metadata.
     const scriptIdentifiers = analyzeScript(scriptBlock, descriptor.scriptSetup.content)
 
-    log('SCRIPT ANALYSIS RESULT:', {
-      props: [...scriptIdentifiers.props],
-      localState: [...scriptIdentifiers.localState],
-      ref: [...scriptIdentifiers.ref],
-      reactive: [...scriptIdentifiers.reactive],
-      computed: [...scriptIdentifiers.computed],
-      methods: [...scriptIdentifiers.methods],
-      store: [...scriptIdentifiers.store],
-      emits: [...scriptIdentifiers.emits],
-      passthrough: [...scriptIdentifiers.passthrough],
-    })
-
-    // Step 4: Analyze the template using the script analysis results.
+    // Step 4: Analyze the template to get decoration ranges.
     if (descriptor.template?.ast) {
-      return analyzeTemplate(descriptor, scriptIdentifiers, document)
+      const templateAnalysis = analyzeTemplate(descriptor, scriptIdentifiers, document)
+      // Combine the results into a single comprehensive object.
+      return { ...templateAnalysis, scriptIdentifiers }
     }
 
-    return emptyResult
+    // Return only script analysis if no template exists.
+    return { ...emptyResult, scriptIdentifiers }
   }
   catch (error) {
     logError('FATAL ERROR during analysis.', error)

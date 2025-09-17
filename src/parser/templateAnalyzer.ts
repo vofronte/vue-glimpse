@@ -14,6 +14,9 @@ import * as vscode from 'vscode'
 import { IDENTIFIER_CATEGORIES, VUE_BUILTIN_HANDLERS } from '../identifierCategories.js'
 import { log } from '../utils/logger.js'
 
+// This module is only responsible for producing the decoration ranges.
+type TemplateAnalysisResult = Omit<AnalysisResult, 'scriptIdentifiers'>
+
 const AST_NODE_TYPES = {
   ELEMENT: 1,
   INTERPOLATION: 5,
@@ -33,18 +36,29 @@ function isSimpleExpressionNode(node?: Node): node is SimpleExpressionNode {
   return !!node && node.type === AST_NODE_TYPES.SIMPLE_EXPRESSION
 }
 
-export function analyzeTemplate(descriptor: SFCDescriptor, identifiers: ScriptIdentifiers, document: vscode.TextDocument): AnalysisResult {
-  const result: AnalysisResult = { propRanges: [], localStateRanges: [], refRanges: [], reactiveRanges: [], computedRanges: [], methodRanges: [], storeRanges: [], emitRanges: [], passthroughRanges: [] }
+export function analyzeTemplate(descriptor: SFCDescriptor, identifiers: ScriptIdentifiers, document: vscode.TextDocument): TemplateAnalysisResult {
+  const result: TemplateAnalysisResult = {
+    propsRanges: [],
+    localStateRanges: [],
+    refRanges: [],
+    reactiveRanges: [],
+    computedRanges: [],
+    methodsRanges: [],
+    storeRanges: [],
+    emitsRanges: [],
+    passthroughRanges: [],
+  }
+
   const allScriptIdentifiers = new Set([
-    ...identifiers.props,
-    ...identifiers.localState,
-    ...identifiers.ref,
-    ...identifiers.reactive,
-    ...identifiers.computed,
-    ...identifiers.methods,
-    ...identifiers.store,
-    ...identifiers.emits,
-    ...identifiers.passthrough,
+    ...identifiers.props.keys(),
+    ...identifiers.localState.keys(),
+    ...identifiers.ref.keys(),
+    ...identifiers.reactive.keys(),
+    ...identifiers.computed.keys(),
+    ...identifiers.methods.keys(),
+    ...identifiers.store.keys(),
+    ...identifiers.emits.keys(),
+    ...identifiers.passthrough.keys(),
   ])
 
   function walkTemplateAst(node: TemplateChildNode, scopeVariables: Set<string>) {
@@ -105,13 +119,14 @@ export function analyzeTemplate(descriptor: SFCDescriptor, identifiers: ScriptId
       if (isIdentifier(node)) {
         const varName = node.text
 
-        // Handle special cases for built-in Vue properties using our central map
+        // Handle special cases for built-in Vue properties
         if (varName.startsWith('$') && !allScriptIdentifiers.has(varName)) {
           const targetRangeProperty = VUE_BUILTIN_HANDLERS.get(varName)
           if (targetRangeProperty) {
             const range = createRange(expOffset + node.getStart(), varName.length, varName)
             if (range) {
-              (result[targetRangeProperty] as vscode.Range[]).push(range)
+              // The type is now correctly inferred
+              result[targetRangeProperty].push(range)
             }
             return // Stop processing this identifier
           }
@@ -122,11 +137,12 @@ export function analyzeTemplate(descriptor: SFCDescriptor, identifiers: ScriptId
         const range = createRange(expOffset + node.getStart(), varName.length, varName)
         if (!range) { return }
 
-        // Find the category for the identifier by looping through our config
+        // Find the category for the identifier using our robust config
         for (const category of IDENTIFIER_CATEGORIES) {
-          const scriptSet = identifiers[category.scriptProperty] as Set<string>
-          if (scriptSet.has(varName)) {
-            const resultRanges = result[category.resultProperty] as vscode.Range[]
+          const scriptMap = identifiers[category.scriptProperty]
+          if (scriptMap.has(varName)) {
+            // The type is now correctly inferred from category.resultProperty
+            const resultRanges = result[category.resultProperty]
             resultRanges.push(range)
             return
           }
