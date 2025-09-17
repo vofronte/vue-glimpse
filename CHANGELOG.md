@@ -1,6 +1,17 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.3.0](https://github.com/vofronte/vue-glimpse/compare/v0.2.0...v0.3.0) - 2025-09-17
+
+### ✨ Features
+
+- *(config)* Add configuration to toggle hover tooltips ([3101c5e](https://github.com/vofronte/vue-glimpse/commit/3101c5e5f1c5ce993e9f28c719ac0e2e9fd5ea79))
+- *(hover)* Display identifier category with icon and label ([37c3d61](https://github.com/vofronte/vue-glimpse/commit/37c3d61364f22c4a3a12c34387fba08c88ab1971))
+- *(hover)* Add hover provider for Vue template identifiers ([85eba36](https://github.com/vofronte/vue-glimpse/commit/85eba366a85f567e60170997e74816b89fdba437))
+
+### ♻️ Refactor
+
+- *(categories)* Centralize identifier category definitions ([d175c89](https://github.com/vofronte/vue-glimpse/commit/d175c89aec2e4f30b1e1db2ca531764b1e906c1e))
 ## [0.2.0](https://github.com/vofronte/vue-glimpse/compare/v0.1.6...v0.2.0) - 2025-09-17
 
 ### ✨ Features

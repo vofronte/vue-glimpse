@@ -3,7 +3,7 @@
   "name": "vue-glimpse",
   "displayName": "VueGlimpse",
   "type": "module",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "packageManager": "bun@1.2.22",
   "description": "Instantly see the origin of your Vue template variables (props, state, etc.) without leaving your HTML.",
   "author": "vofronte",
