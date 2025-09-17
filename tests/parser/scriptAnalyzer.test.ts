@@ -107,4 +107,33 @@ describe('scriptAnalyzer', () => {
     expect(result.ref.has('name')).toBe(false)
     expect(result.ref.has('isAdmin')).toBe(false)
   })
+
+  describe('defineEmits', () => {
+    it('should identify the "emit" function when assigned to a variable', () => {
+      const mockScriptContent = `const emit = defineEmits(['update:modelValue'])`
+      const mockScriptBlock = {
+        // Note: `defineEmits` doesn't add to `bindings`.
+        // This must be found by the AST pass.
+        bindings: {},
+      } as unknown as SFCScriptBlock
+
+      const result = analyzeScript(mockScriptBlock, mockScriptContent)
+
+      expect(result.emits.size).toBe(1)
+      expect(result.emits.has('emit')).toBe(true)
+      expect(result.localState.has('emit')).toBe(false)
+    })
+
+    it('should identify the implicit "emit" function when not assigned', () => {
+      const mockScriptContent = `defineEmits(['some-event'])`
+      const mockScriptBlock = {
+        bindings: {},
+      } as unknown as SFCScriptBlock
+
+      const result = analyzeScript(mockScriptBlock, mockScriptContent)
+
+      expect(result.emits.size).toBe(1)
+      expect(result.emits.has('emit')).toBe(true)
+    })
+  })
 })
