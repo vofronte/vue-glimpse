@@ -1,6 +1,21 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.4.0](https://github.com/vofronte/vue-glimpse/compare/v0.3.1...v0.4.0) - 2025-09-18
+
+### ✨ Features
+
+- *(optionsApi)* Parse methods from mapActions helper ([ca7d67a](https://github.com/vofronte/vue-glimpse/commit/ca7d67a9222975449688121fc6513da55f556138))
+- *(parser)* Introduce dedicated analyzers for options API ([20b9773](https://github.com/vofronte/vue-glimpse/commit/20b977310363032b70850d1b890e864268cbbae8))
+
+### 🐛 Bug Fixes
+
+- *(analysis)* Retain decorations on syntax errors ([958e3c8](https://github.com/vofronte/vue-glimpse/commit/958e3c85d638986ab6da40f72bec820bd4fb4661))
+
+### ♻️ Refactor
+
+- *(core)* Decouple parser from VS Code API ([f7d7412](https://github.com/vofronte/vue-glimpse/commit/f7d7412a3498a07210fc6e04d13e3d9240e945bb))
+- *(optionsApi)* Extract AST helper functions ([cb186ed](https://github.com/vofronte/vue-glimpse/commit/cb186ed092e4ccd631c4a238d8cb588db06e9f12))
 ## [0.3.1](https://github.com/vofronte/vue-glimpse/compare/v0.3.0...v0.3.1) - 2025-09-17
 
 ### 🐛 Bug Fixes
