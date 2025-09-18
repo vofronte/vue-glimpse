@@ -13,7 +13,7 @@ let compileId = 0
  * This is used as a default/fallback return value.
  * @returns An empty AnalysisResult.
  */
-function createEmptyAnalysisResult(): AnalysisResult {
+export function createEmptyAnalysisResult(): AnalysisResult {
   const emptyIdentifiers: ScriptIdentifiers = {
     props: new Map(),
     localState: new Map(),
@@ -40,18 +40,17 @@ function createEmptyAnalysisResult(): AnalysisResult {
   }
 }
 
-export function analyzeVueFile(code: string, document: TextDocument): AnalysisResult {
-  const emptyResult = createEmptyAnalysisResult()
-
+export function analyzeVueFile(code: string, document: TextDocument): AnalysisResult | null {
   try {
     // Step 1: Parse the SFC to get the descriptor.
     const { descriptor, errors } = parse(code, { filename: document.uri.fsPath })
     if (errors.length > 0) {
       log('SFC parse errors:', errors.map(e => e.message))
+      // Unlike compileScript, parse errors are often not fatal. We can proceed.
     }
 
     if (!descriptor.scriptSetup) {
-      return emptyResult
+      return createEmptyAnalysisResult()
     }
 
     // Step 2: Compile the script to get binding metadata. This is our "oracle".
@@ -72,10 +71,11 @@ export function analyzeVueFile(code: string, document: TextDocument): AnalysisRe
     }
 
     // Return only script analysis if no template exists.
-    return { ...emptyResult, scriptIdentifiers }
+    return { ...createEmptyAnalysisResult(), scriptIdentifiers }
   }
   catch (error) {
     logError('FATAL ERROR during analysis.', error)
-    return emptyResult
+    // Return null to signal that analysis failed and a stale result should be used if available.
+    return null
   }
 }

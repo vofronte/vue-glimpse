@@ -1,6 +1,6 @@
 import type { TextDocument } from 'vscode'
 import type { AnalysisResult } from '../parser/types.js'
-import { analyzeVueFile } from '../parser/index.js'
+import { analyzeVueFile, createEmptyAnalysisResult } from '../parser/index.js'
 import { log } from '../utils/logger.js'
 
 interface CacheEntry {
@@ -20,8 +20,12 @@ export class AnalysisManager {
    * It will first check a cache. If a valid, up-to-date result is found,
    * it's returned instantly. Otherwise, it performs a full analysis and
    * caches the new result.
+   *
+   * If analysis fails due to a syntax error, it will attempt to return a
+   * stale (previous) result from the cache instead of clearing decorations.
+   *
    * @param document The TextDocument to analyze.
-   * @returns The analysis result for the document.
+   * @returns The analysis result for the document. Never null.
    */
   public getAnalysis(document: TextDocument): AnalysisResult {
     const cachedEntry = this.cache.get(document.uri.toString())
@@ -32,14 +36,27 @@ export class AnalysisManager {
     }
 
     log(`[Cache] MISS for ${document.fileName} v${document.version}. Analyzing...`)
-    const result = analyzeVueFile(document.getText(), document)
+    const newResult = analyzeVueFile(document.getText(), document)
 
-    this.cache.set(document.uri.toString(), {
-      version: document.version,
-      result,
-    })
+    // Case 1: Analysis was successful.
+    if (newResult) {
+      this.cache.set(document.uri.toString(), {
+        version: document.version,
+        result: newResult,
+      })
+      return newResult
+    }
 
-    return result
+    // Case 2: Analysis failed (e.g., syntax error).
+    log('[Analysis] Failed. Attempting to use stale cache.')
+    if (cachedEntry) {
+      log(`[Cache] SERVING STALE for ${document.fileName} (v${cachedEntry.version})`)
+      return cachedEntry.result // Return the last known good result.
+    }
+
+    // Case 3: Analysis failed and there's no cached version.
+    log('[Analysis] No stale cache available. Returning empty result.')
+    return createEmptyAnalysisResult()
   }
 
   /**
