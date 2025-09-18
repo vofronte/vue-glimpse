@@ -24,7 +24,7 @@
   <img src="https://github.com/vofronte/vue-glimpse/blob/main/media/demo.gif?raw=true" alt="VueGlimpse in action (demo)">
 </p>
 
-VueGlimpse is a VS Code extension for **Vue & Nuxt** that ends the constant scrolling and context-switching when working in large components. It shows you exactly where your template variables originate—be it `props`, `ref`, a `store`, or a local `const`—with subtle, at-a-glance icons, and provides clean, context-aware tooltips on hover. Stay in your flow and understand your component's data source instantly.
+VueGlimpse is a VS Code extension for **Vue & Nuxt** that ends the constant scrolling and context-switching when working in large components. It shows you exactly where your template variables originate—be it `props`, a `store`, or a computed property—with subtle, at-a-glance icons. It supports both **`<script setup>` (Composition API)** and the **Options API**, helping you stay in your flow and understand your component's data source instantly.
 
 ## Table of Contents
 
@@ -39,20 +39,21 @@ VueGlimpse is a VS Code extension for **Vue & Nuxt** that ends the constant scro
 
 You're deep in a component, see `<p>{{ user.name }}</p>`, and ask yourself:
 
-> "Where is `user` coming from? Is it a `prop`? A `ref`? From a Pinia store?"
+> "Where is `user` coming from? Is it a `prop`? A `ref`? From a Pinia store? Or a `data` property?"
 
-Each question forces a jump to the `<script setup>`, breaking your concentration. VueGlimpse eliminates these interruptions.
+Each question forces a jump to the `<script>` block, breaking your concentration. VueGlimpse eliminates these interruptions.
 
 -   🧠 **Reduces Cognitive Load:** Stop mapping your component's state in your head. The editor does it for you.
 -   ⚡ **Keeps You in the Flow:** Stay focused on your template without constant context switching.
--   🚀 **Speeds Up Onboarding & Reviews:** Instantly understand an unfamiliar component's data flow.
+-   🚀 **Speeds Up Onboarding & Reviews:** Instantly understand any component's data flow, regardless of the API style.
 
 ## Features
 
 -   **At-a-glance Origin Indicators:** Subtle icons in your template tell you the source of your data.
--   **Minimalist Hovers:** Instantly identify a variable's origin (`Prop`, `Ref`, etc.) on hover-no code, just context.
--   **Compiler-Level Accuracy:** Powered by `@vue/compiler-sfc` for guaranteed correctness.
--   **Full API Visibility:** Identifies the entire Vue Composition API, including stores and passthrough attributes.
+-   **Universal API Support:** Works seamlessly with both `<script setup>` and the Options API.
+-   **Minimalist Hovers:** Instantly identify a variable's origin (`Prop`, `Ref`, etc.) on hover—no code, just context.
+-   **Compiler-Level Accuracy:** Powered by `@vue/compiler-sfc` for guaranteed correctness where possible.
+-   **Full API Visibility:** Identifies the entire Vue API surface, including stores and passthrough attributes.
 -   **Blazing Fast:** Intelligent caching ensures zero performance impact.
 -   **Configurable:** Toggle icons and hovers to fit your workflow.
 
@@ -62,15 +63,15 @@ A simple, intuitive icon set helps you decode your template instantly.
 
 | Icon | Origin                      | What It Means                                                |
 | :--: | --------------------------- | ------------------------------------------------------------ |
-|  ℗   | `prop` | Data passed down from a parent (`defineProps`). |
-|  📥   | `attrs` / `slots` | Attributes or slots passed from a parent that are not declared as props. Available via `$attrs`, `$slots`, `useAttrs()`, or `useSlots()`. |
-|  📤   | `emit` | An event sent to a parent component. Available via `defineEmits()` or the built-in `$emit`. |
-|  🔹  | `ref` | A reactive primitive value (`ref()`). |
-|  🔷  | `reactive` | A reactive object (`reactive()`). |
-|  ⚡   | `computed` | A derived value that updates automatically (`computed()`). |
-|  📦   | `store` / External State | State from a global store like Pinia or Vuex. |
-|  ƒ   | `method` | A function you can call. |
-|  •   | Local Variable | A simple, non-reactive `const` or `let`. |
+|  ℗   | `prop`                      | Data passed down from a parent (`defineProps` or `props` option). |
+|  📥   | `attrs` / `slots`           | Attributes or slots passed from a parent. Available via `$attrs`, `$slots`, etc. |
+|  📤   | `emit`                      | An event sent to a parent component. Available via `defineEmits` or `$emit`. |
+|  🔹  | `ref`                       | A reactive primitive value (`ref()` in `<script setup>`).      |
+|  🔷  | `reactive`                  | A reactive object (`reactive()` or a `data()` property).         |
+|  ⚡   | `computed`                  | A derived value that updates automatically (`computed` option or function). |
+|  📦   | `store` / External State    | State from a global store like Pinia or Vuex.                |
+|  ƒ   | `method`                    | A function you can call from the template (`methods` option or a function in `<script setup>`). |
+|  •   | Local Variable              | A simple, non-reactive `const` or `let` in `<script setup>`. |
 
 ## Getting Started
 
