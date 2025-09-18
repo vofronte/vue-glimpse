@@ -1,3 +1,4 @@
+import type { BindingTypes } from '@vue/compiler-dom'
 import type { Range } from 'vscode'
 
 /**
@@ -56,3 +57,9 @@ export interface AnalysisResult extends DecorationRanges {
    */
   scriptIdentifiers: ScriptIdentifiers
 }
+
+/**
+ * A simplified version of BindingMetadata from @vue/compiler-core.
+ * It's a map of identifier names to their binding types.
+ */
+export type BindingMetadata = Record<string, BindingTypes | undefined>

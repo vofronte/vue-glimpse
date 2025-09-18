@@ -1,6 +1,6 @@
 import type { SFCScriptBlock } from '@vue/compiler-sfc'
 import type { Node as TSNode } from 'typescript'
-import type { ScriptIdentifierDetails, ScriptIdentifiers } from './types.js'
+import type { ScriptIdentifierDetails, ScriptIdentifiers } from '../types.js'
 import { BindingTypes } from '@vue/compiler-dom'
 import {
   createSourceFile,
@@ -14,7 +14,7 @@ import {
   ScriptTarget,
   SyntaxKind,
 } from 'typescript'
-import { log } from '../utils/logger.js'
+import { log } from '../../utils/logger.js'
 
 function getFullStatementText(node: TSNode, sourceFile: import('typescript').SourceFile): string {
   let statementNode = node

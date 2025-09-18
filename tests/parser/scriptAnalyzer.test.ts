@@ -1,6 +1,6 @@
 import type { SFCScriptBlock } from '@vue/compiler-sfc'
 import { BindingTypes } from '@vue/compiler-dom'
-import { analyzeScript } from '../../src/parser/scriptAnalyzer.js'
+import { analyzeScript } from '../../src/parser/scriptSetup/analyzer.js'
 
 describe('scriptAnalyzer', () => {
   it('should correctly identify props from binding metadata', () => {

@@ -1,8 +1,10 @@
+import type { SFCDescriptor } from '@vue/compiler-sfc'
 import type { TextDocument } from 'vscode'
 import type { AnalysisResult, ScriptIdentifiers } from './types.js'
 import { compileScript, parse } from '@vue/compiler-sfc'
 import { log, logError } from '../utils/logger.js'
-import { analyzeScript } from './scriptAnalyzer.js'
+import { analyzeOptionsApi } from './optionsApi/analyzer.js'
+import { analyzeScript } from './scriptSetup/analyzer.js'
 import { analyzeTemplate } from './templateAnalyzer.js'
 
 // A simple counter for a unique ID for compileScript
@@ -40,38 +42,56 @@ export function createEmptyAnalysisResult(): AnalysisResult {
   }
 }
 
+/**
+ * Analyzes a <script setup> block.
+ * This function contains the original analysis logic.
+ * @param descriptor The SFC descriptor.
+ * @param document The VS Code text document.
+ * @returns A comprehensive analysis result or null on failure.
+ */
+function analyzeScriptSetup(descriptor: SFCDescriptor, document: TextDocument): AnalysisResult | null {
+  if (!descriptor.scriptSetup)
+    return createEmptyAnalysisResult()
+
+  // Step 2: Compile the script to get binding metadata. This is our "oracle".
+  const scriptBlock = compileScript(descriptor, {
+    id: `vue-glimpse-${compileId++}`,
+  })
+
+  // Step 3: Analyze the script to get detailed identifier metadata.
+  const scriptIdentifiers = analyzeScript(scriptBlock, descriptor.scriptSetup.content)
+
+  // Step 4: Analyze the template to get decoration ranges.
+  if (descriptor.template?.ast) {
+    const templateAnalysis = analyzeTemplate(descriptor, scriptIdentifiers, document)
+    // Combine the results into a single comprehensive object.
+    return { ...templateAnalysis, scriptIdentifiers }
+  }
+
+  // Return only script analysis if no template exists.
+  return { ...createEmptyAnalysisResult(), scriptIdentifiers }
+}
+
 export function analyzeVueFile(code: string, document: TextDocument): AnalysisResult | null {
   try {
-    // Step 1: Parse the SFC to get the descriptor.
+    // Step 1: Parse the SFC to get the descriptor. This is universal.
     const { descriptor, errors } = parse(code, { filename: document.uri.fsPath })
     if (errors.length > 0) {
       log('SFC parse errors:', errors.map(e => e.message))
-      // Unlike compileScript, parse errors are often not fatal. We can proceed.
     }
 
-    if (!descriptor.scriptSetup) {
-      return createEmptyAnalysisResult()
+    // DISPATCHER LOGIC
+    if (descriptor.scriptSetup) {
+      // Use the dedicated analyzer for <script setup>
+      return analyzeScriptSetup(descriptor, document)
+    }
+    else if (descriptor.script) {
+      // Use the dedicated analyzer for Options API
+      return analyzeOptionsApi(descriptor, document)
     }
 
-    // Step 2: Compile the script to get binding metadata. This is our "oracle".
-    const scriptBlock = compileScript(descriptor, {
-      id: `vue-glimpse-${compileId++}`,
-      // We don't need template inlining, source maps, etc. for our analysis.
-      // Keep options minimal for performance.
-    })
-
-    // Step 3: Analyze the script to get detailed identifier metadata.
-    const scriptIdentifiers = analyzeScript(scriptBlock, descriptor.scriptSetup.content)
-
-    // Step 4: Analyze the template to get decoration ranges.
-    if (descriptor.template?.ast) {
-      const templateAnalysis = analyzeTemplate(descriptor, scriptIdentifiers, document)
-      // Combine the results into a single comprehensive object.
-      return { ...templateAnalysis, scriptIdentifiers }
-    }
-
-    // Return only script analysis if no template exists.
-    return { ...createEmptyAnalysisResult(), scriptIdentifiers }
+    // No script blocks found, return empty result
+    return createEmptyAnalysisResult()
   }
   catch (error) {
     logError('FATAL ERROR during analysis.', error)
