@@ -1,11 +1,4 @@
-import type {
-  ExportDefaultDeclaration,
-  Identifier,
-  Node,
-  ObjectExpression,
-  ObjectProperty,
-  Program,
-} from '@babel/types'
+import type { ObjectExpression, ObjectProperty } from '@babel/types'
 import type { SFCDescriptor } from '@vue/compiler-sfc'
 import type { TextDocument } from 'vscode'
 import type { AnalysisResult, BindingMetadata, ScriptIdentifiers } from '../types.js'
@@ -14,41 +7,8 @@ import { BindingTypes } from '@vue/compiler-dom'
 import { log } from '../../utils/logger.js'
 import { createEmptyAnalysisResult } from '../index.js'
 import { analyzeTemplate } from '../templateAnalyzer.js'
+import { findComponentDefinition, getNodeKeyName } from './helpers.js'
 import { analyzeBindingsFromOptions } from './vendor/analyzeScriptBindings.js'
-
-/**
- * Safely gets the string name of a property key from an AST node.
- * @param node The key node (Identifier or StringLiteral).
- * @returns The name of the key or undefined if it's a complex expression.
- */
-function getNodeKeyName(node: Node): string | undefined {
-  if (node.type === 'Identifier')
-    return node.name
-  if (node.type === 'StringLiteral')
-    return node.value
-}
-
-function findComponentDefinition(scriptAst: Program): ObjectExpression | null {
-  const exportDefault = scriptAst.body.find(
-    node => node.type === 'ExportDefaultDeclaration',
-  ) as ExportDefaultDeclaration | undefined
-
-  if (!exportDefault)
-    return null
-
-  if (exportDefault.declaration.type === 'ObjectExpression')
-    return exportDefault.declaration
-
-  if (
-    exportDefault.declaration.type === 'CallExpression'
-    && (exportDefault.declaration.callee as Identifier).name === 'defineComponent'
-    && exportDefault.declaration.arguments[0]?.type === 'ObjectExpression'
-  ) {
-    return exportDefault.declaration.arguments[0]
-  }
-
-  return null
-}
 
 function convertMetadataToIdentifiers(metadata: BindingMetadata): ScriptIdentifiers {
   const identifiers: ScriptIdentifiers = {
@@ -70,18 +30,14 @@ function convertMetadataToIdentifiers(metadata: BindingMetadata): ScriptIdentifi
     const details = { definition: `Defined in component options` }
     switch (type) {
       case BindingTypes.PROPS:
-        identifiers.props.set(name, details)
-        break
+        identifiers.props.set(name, details); break
       case BindingTypes.DATA:
-        identifiers.reactive.set(name, details)
-        break
+        identifiers.reactive.set(name, details); break
       case BindingTypes.SETUP_MAYBE_REF:
       case BindingTypes.SETUP_REF:
-        identifiers.ref.set(name, details)
-        break
+        identifiers.ref.set(name, details); break
       case BindingTypes.OPTIONS:
-        identifiers.localState.set(name, details)
-        break
+        identifiers.localState.set(name, details); break
     }
   }
 
@@ -89,16 +45,16 @@ function convertMetadataToIdentifiers(metadata: BindingMetadata): ScriptIdentifi
 }
 
 /**
- * Refines the analysis by differentiating computed properties and methods.
+ * Refines the analysis by differentiating computed, methods, and store helpers.
  * @param componentDef The component's ObjectExpression AST node.
  * @param identifiers The ScriptIdentifiers object to refine.
  */
 function detailAnalysis(componentDef: ObjectExpression, identifiers: ScriptIdentifiers) {
-  const componentProperties = componentDef.properties.filter(
+  const properties = componentDef.properties.filter(
     (prop): prop is ObjectProperty => prop.type === 'ObjectProperty',
   )
 
-  for (const prop of componentProperties) {
+  for (const prop of properties) {
     const key = getNodeKeyName(prop.key)
 
     if (key === 'computed' && prop.value.type === 'ObjectExpression') {
@@ -114,13 +70,10 @@ function detailAnalysis(componentDef: ObjectExpression, identifiers: ScriptIdent
         }
         // Handle `...mapState(...)`
         else if (computedNode.type === 'SpreadElement' && computedNode.argument.type === 'CallExpression') {
-          const call = computedNode.argument
-          // Heuristic: Check for array as the second argument, e.g., mapState(store, ['theme', 'role'])
-          if (call.arguments[1]?.type === 'ArrayExpression') {
-            for (const el of call.arguments[1].elements) {
+          if (computedNode.argument.arguments[1]?.type === 'ArrayExpression') {
+            for (const el of computedNode.argument.arguments[1].elements) {
               if (el?.type === 'StringLiteral') {
                 const name = el.value
-                // **THE FIX**: Directly add to store, don't check localState
                 if (!identifiers.store.has(name)) {
                   log(`[Options API] Found store binding from spread: ${name}`)
                   identifiers.store.set(name, { definition: 'From store helper' })
@@ -156,7 +109,6 @@ export function analyzeOptionsApi(
   descriptor: SFCDescriptor,
   document: TextDocument,
 ): AnalysisResult | null {
-  // ... (остальная часть функции не меняется)
   log('[Options API] Analyzer invoked.')
   if (!descriptor.script)
     return createEmptyAnalysisResult()
