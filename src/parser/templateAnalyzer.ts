@@ -1,16 +1,14 @@
 import type { AttributeNode, DirectiveNode, ElementNode, InterpolationNode, Node, SimpleExpressionNode, TemplateChildNode } from '@vue/compiler-core'
 import type { SFCDescriptor } from '@vue/compiler-sfc'
 import type { Node as TSNode } from 'typescript'
-import type { AnalysisResult, ScriptIdentifiers } from './types.js'
+import type { AnalysisResult, IdentifierRange, ScriptIdentifiers } from './types.js'
 import {
   createSourceFile,
   forEachChild,
   isIdentifier,
   isPropertyAccessExpression,
   ScriptTarget,
-
 } from 'typescript'
-import * as vscode from 'vscode'
 import { IDENTIFIER_CATEGORIES, VUE_BUILTIN_HANDLERS } from '../identifierCategories.js'
 import { log } from '../utils/logger.js'
 
@@ -36,7 +34,7 @@ function isSimpleExpressionNode(node?: Node): node is SimpleExpressionNode {
   return !!node && node.type === AST_NODE_TYPES.SIMPLE_EXPRESSION
 }
 
-export function analyzeTemplate(descriptor: SFCDescriptor, identifiers: ScriptIdentifiers, document: vscode.TextDocument): TemplateAnalysisResult {
+export function analyzeTemplate(descriptor: SFCDescriptor, identifiers: ScriptIdentifiers): TemplateAnalysisResult {
   const result: TemplateAnalysisResult = {
     propsRanges: [],
     localStateRanges: [],
@@ -153,14 +151,12 @@ export function analyzeTemplate(descriptor: SFCDescriptor, identifiers: ScriptId
     walkExpressionAst(expSourceFile)
   }
 
-  function createRange(absoluteOffset: number, length: number, varName: string): vscode.Range | null {
+  function createRange(start: number, length: number, varName: string): IdentifierRange | null {
     try {
-      const startPos = document.positionAt(absoluteOffset)
-      const endPos = document.positionAt(absoluteOffset + length)
-      return new vscode.Range(startPos, endPos)
+      return { start, end: start + length }
     }
     catch {
-      log(`[createRange] Failed for "${varName}" at offset ${absoluteOffset}`)
+      log(`[createRange] Failed for "${varName}" at offset ${start}`)
       return null
     }
   }

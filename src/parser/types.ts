@@ -1,5 +1,12 @@
 import type { BindingTypes } from '@vue/compiler-dom'
-import type { Range } from 'vscode'
+
+/**
+ * A simple, environment-agnostic interface for a text range.
+ */
+export interface IdentifierRange {
+  start: number // character offset from the beginning of the file
+  end: number // character offset from the beginning of the file
+}
 
 /**
  * Defines the canonical list of identifier categories.
@@ -35,7 +42,7 @@ export interface ScriptIdentifierDetails {
  * This avoids manual repetition and ensures consistency with IdentifierCategoryKey.
  */
 type DecorationRanges = {
-  [K in IdentifierCategoryKey as `${K}Ranges`]: Range[]
+  [K in IdentifierCategoryKey as `${K}Ranges`]: IdentifierRange[]
 }
 
 /**

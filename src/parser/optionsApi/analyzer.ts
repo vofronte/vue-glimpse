@@ -1,6 +1,5 @@
 import type { ObjectExpression, ObjectProperty } from '@babel/types'
 import type { SFCDescriptor } from '@vue/compiler-sfc'
-import type { TextDocument } from 'vscode'
 import type { AnalysisResult, BindingMetadata, ScriptIdentifiers } from '../types.js'
 import { parse as babelParse } from '@babel/parser'
 import { BindingTypes } from '@vue/compiler-dom'
@@ -102,12 +101,10 @@ function detailAnalysis(componentDef: ObjectExpression, identifiers: ScriptIdent
 /**
  * Orchestrates the analysis of a Vue component using the Options API.
  * @param descriptor The SFC descriptor.
- * @param document The VS Code text document.
  * @returns A comprehensive analysis result or null on failure.
  */
 export function analyzeOptionsApi(
   descriptor: SFCDescriptor,
-  document: TextDocument,
 ): AnalysisResult | null {
   log('[Options API] Analyzer invoked.')
   if (!descriptor.script)
@@ -142,7 +139,7 @@ export function analyzeOptionsApi(
     })
 
     if (descriptor.template?.ast) {
-      const templateAnalysis = analyzeTemplate(descriptor, scriptIdentifiers, document)
+      const templateAnalysis = analyzeTemplate(descriptor, scriptIdentifiers)
       return { ...templateAnalysis, scriptIdentifiers }
     }
 

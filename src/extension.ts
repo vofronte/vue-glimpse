@@ -1,7 +1,9 @@
-import type { ExtensionContext, TextEditor } from 'vscode'
-import { languages, window, workspace } from 'vscode'
+import type { ExtensionContext, TextEditor, TextEditorDecorationType } from 'vscode'
+import type { IdentifierCategoryKey } from './parser/types.js'
+import { languages, Range, ThemeColor, window, workspace } from 'vscode'
 import { AnalysisManager } from './analysis/AnalysisManager.js'
-import { DECORATIONS } from './decorators.js'
+import { CATEGORY_ICONS } from './categoryConfig.js'
+import { DECORATION_CONFIG } from './decorators.js'
 import { VueGlimpseHoverProvider } from './features/hoverProvider.js'
 import { IDENTIFIER_CATEGORIES } from './identifierCategories.js'
 import { log } from './utils/logger.js'
@@ -14,6 +16,23 @@ let timeout: NodeJS.Timeout | undefined
  */
 export function activate(context: ExtensionContext) {
   log('VueGlimpse is now active!')
+
+  // --- Create and manage decorations within the activation context ---
+  const decorationTypes = new Map<IdentifierCategoryKey, TextEditorDecorationType>()
+
+  for (const category of IDENTIFIER_CATEGORIES) {
+    const key = category.key
+    const config = DECORATION_CONFIG[key]
+    const icon = CATEGORY_ICONS[key]
+    const decoration = window.createTextEditorDecorationType({
+      after: {
+        contentText: icon,
+        margin: '0 0 0 1.5px',
+        color: new ThemeColor(config.color),
+      },
+    })
+    decorationTypes.set(key, decoration)
+  }
 
   const analysisManager = new AnalysisManager()
 
@@ -77,10 +96,10 @@ export function activate(context: ExtensionContext) {
     const document = activeEditor.document
 
     if (document.languageId !== 'vue') {
-      // Use the new DECORATIONS map to clear all decoration types if the file is not a Vue component
-      for (const decoration of Object.values(DECORATIONS)) {
+      // Use the new map to clear decorations
+      for (const decoration of decorationTypes.values())
         activeEditor.setDecorations(decoration, [])
-      }
+
       return
     }
 
@@ -88,10 +107,24 @@ export function activate(context: ExtensionContext) {
 
     // Apply decorations for each category using the new result structure
     for (const category of IDENTIFIER_CATEGORIES) {
-      // Access the correct pluralized range property (e.g., 'propsRanges')
+      // Convert our IdentifierRange[] to vscode.Range[]
       const ranges = analysisResult[category.resultProperty]
-      // The filter is a safeguard against any potential null/undefined ranges
-      activeEditor.setDecorations(category.decoration, ranges.filter(Boolean))
+        .map((r) => {
+          try {
+            const startPos = document.positionAt(r.start)
+            const endPos = document.positionAt(r.end)
+            return new Range(startPos, endPos)
+          }
+          catch (e) {
+            log(`Failed to create range for decoration`, e)
+            return null
+          }
+        })
+        .filter((r): r is Range => r !== null) // Filter out nulls on failure
+
+      const decoration = decorationTypes.get(category.key)
+      if (decoration)
+        activeEditor.setDecorations(decoration, ranges)
     }
   }
 

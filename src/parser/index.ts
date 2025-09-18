@@ -46,10 +46,9 @@ export function createEmptyAnalysisResult(): AnalysisResult {
  * Analyzes a <script setup> block.
  * This function contains the original analysis logic.
  * @param descriptor The SFC descriptor.
- * @param document The VS Code text document.
  * @returns A comprehensive analysis result or null on failure.
  */
-function analyzeScriptSetup(descriptor: SFCDescriptor, document: TextDocument): AnalysisResult | null {
+function analyzeScriptSetup(descriptor: SFCDescriptor): AnalysisResult | null {
   if (!descriptor.scriptSetup)
     return createEmptyAnalysisResult()
 
@@ -63,7 +62,7 @@ function analyzeScriptSetup(descriptor: SFCDescriptor, document: TextDocument): 
 
   // Step 4: Analyze the template to get decoration ranges.
   if (descriptor.template?.ast) {
-    const templateAnalysis = analyzeTemplate(descriptor, scriptIdentifiers, document)
+    const templateAnalysis = analyzeTemplate(descriptor, scriptIdentifiers)
     // Combine the results into a single comprehensive object.
     return { ...templateAnalysis, scriptIdentifiers }
   }
@@ -83,11 +82,11 @@ export function analyzeVueFile(code: string, document: TextDocument): AnalysisRe
     // DISPATCHER LOGIC
     if (descriptor.scriptSetup) {
       // Use the dedicated analyzer for <script setup>
-      return analyzeScriptSetup(descriptor, document)
+      return analyzeScriptSetup(descriptor)
     }
     else if (descriptor.script) {
       // Use the dedicated analyzer for Options API
-      return analyzeOptionsApi(descriptor, document)
+      return analyzeOptionsApi(descriptor)
     }
 
     // No script blocks found, return empty result
