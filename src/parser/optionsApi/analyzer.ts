@@ -93,6 +93,22 @@ function detailAnalysis(componentDef: ObjectExpression, identifiers: ScriptIdent
             identifiers.methods.set(name, details)
           }
         }
+        // ...mapActions(...) ---
+        else if (methodNode.type === 'SpreadElement' && methodNode.argument.type === 'CallExpression') {
+          const call = methodNode.argument
+          if (call.arguments[1]?.type === 'ArrayExpression') {
+            for (const el of call.arguments[1].elements) {
+              if (el?.type === 'StringLiteral') {
+                const name = el.value
+                // Actions from store helpers are methods.
+                if (!identifiers.methods.has(name)) {
+                  log(`[Options API] Found method binding from spread: ${name}`)
+                  identifiers.methods.set(name, { definition: 'From actions helper' })
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
