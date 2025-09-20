@@ -10,13 +10,16 @@
 
 <p align="center">
   <a href="https://marketplace.visualstudio.com/items?itemName=vofronte.vue-glimpse" target="_blank">
-    <img src="https://img.shields.io/visual-studio-marketplace/v/vofronte.vue-glimpse?style=flat-square&label=Marketplace&color=228d6a" alt="Visual Studio Marketplace Version">
+    <img alt="Marketplace Version" src="https://img.shields.io/visual-studio-marketplace/v/vofronte.vue-glimpse?style=flat-square&color=228d6a&logo=visualstudiocode&logoColor=white">
   </a>
-  <a href="https://marketplace.visualstudio.com/items?itemName=vofronte.vue-glimpse" target="_blank">
-    <img src="https://img.shields.io/visual-studio-marketplace/i/vofronte.vue-glimpse?style=flat-square&color=228d6a" alt="Installs">
+  <a href="https://github.com/vofronte/vue-glimpse/actions/workflows/release.yml" target="_blank">
+    <img alt="CI Status" src="https://img.shields.io/github/actions/workflow/status/vofronte/vue-glimpse/release.yml?branch=main&style=flat-square&logo=githubactions&logoColor=white&label=">
+  </a>
+  <a href="https://github.com/vofronte/vue-glimpse" target="_blank">
+    <img alt="Built with TypeScript" src="https://img.shields.io/badge/built%20with-TypeScript-3178C6.svg?style=flat-square&logo=typescript&logoColor=white">
   </a>
   <a href="https://opensource.org/licenses/MIT" target="_blank">
-    <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square" alt="License: MIT">
+    <img alt="License" src="https://img.shields.io/badge/license-MIT-yellow.svg?style=flat-square&logo=opensource&logoColor=white">
   </a>
 </p>
 
