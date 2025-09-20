@@ -30,8 +30,11 @@ export function activate(context: ExtensionContext) {
   context.subscriptions.push(
     // 1. Listen for configuration changes
     workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration('vueGlimpse.icons.override')) {
-        log('[Configuration] Icon settings changed. Recreating decorations.')
+      if (
+        event.affectsConfiguration('vueGlimpse.icons.override')
+        || event.affectsConfiguration('vueGlimpse.colors.override')
+      ) {
+        log('[Configuration] Settings changed. Recreating decorations.')
         decorationManager.recreateDecorationTypes()
         triggerUpdateDecorations(0) // Force an immediate update
       }
@@ -43,7 +46,7 @@ export function activate(context: ExtensionContext) {
     // 3. Update on active editor change
     window.onDidChangeActiveTextEditor((editor) => {
       activeEditor = editor
-      if (editor)
+      if (editor && editor.document)
         triggerUpdateDecorations()
     }),
 
@@ -55,7 +58,7 @@ export function activate(context: ExtensionContext) {
   )
 
   // Initial run for the currently active editor
-  if (activeEditor)
+  if (activeEditor && activeEditor.document)
     triggerUpdateDecorations()
 }
 
@@ -74,7 +77,7 @@ function triggerUpdateDecorations(delay = 300) {
  * Main "working" function: analyzes code and applies decorations.
  */
 function updateDecorations() {
-  if (!activeEditor)
+  if (!activeEditor || !activeEditor.document)
     return
 
   const { document } = activeEditor

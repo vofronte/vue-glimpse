@@ -80,6 +80,11 @@
           "type": "object",
           "default": {},
           "description": "Override default icons for specific categories. Example: { \"props\": \"🅿️\", \"ref\": \"R\" }"
+        },
+        "vueGlimpse.colors.override": {
+          "type": "object",
+          "default": {},
+          "description": "Override default colors. Accepts HEX/RGB values or VS Code theme color IDs. Example: { \"props\": \"#90ee90\", \"ref\": \"terminal.ansiBlue\" }"
         }
       }
     }

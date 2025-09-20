@@ -1,8 +1,7 @@
 import type { TextEditor, TextEditorDecorationType } from 'vscode'
 import type { AnalysisResult, IdentifierCategoryKey } from '../parser/types.js'
 import { Range, ThemeColor, window } from 'vscode'
-import { getIconMap } from '../configManager.js'
-import { DECORATION_CONFIG } from '../decorators.js'
+import { getColorMap, getIconMap } from '../configManager.js'
 import { IDENTIFIER_CATEGORIES } from '../identifierCategories.js'
 import { log } from '../utils/logger.js'
 
@@ -32,26 +31,34 @@ export class DecorationManager {
 
   /**
    * Recreates all decoration types from scratch based on the current user configuration.
-   * This is the core method for enabling dynamic updates of icons.
+   * This is the core method for enabling dynamic updates of icons and colors.
    * It first disposes of any existing decorations before creating new ones.
    */
   public recreateDecorationTypes(): void {
     this.dispose() // Clean up before creating new ones
 
     const iconMap = getIconMap()
+    const colorMap = getColorMap()
 
     log('[DecorationManager] Recreating decoration types with icons:', iconMap)
+    log('[DecorationManager] Recreating decoration types with colors:', colorMap)
 
     for (const category of IDENTIFIER_CATEGORIES) {
       const key = category.key
-      const decorationConfig = DECORATION_CONFIG[key]
       const icon = iconMap[key]
+      const colorValue = colorMap[key]
+
+      // Determine if the color is a theme color ID or a literal value (e.g., #RRGGBB).
+      // Our simple heuristic: theme colors contain a dot.
+      const color = colorValue.includes('.')
+        ? new ThemeColor(colorValue)
+        : colorValue
 
       const decoration = window.createTextEditorDecorationType({
         after: {
           contentText: icon,
           margin: '0 0 0 1.5px',
-          color: new ThemeColor(decorationConfig.color),
+          color, // This can be a string OR a ThemeColor instance
         },
       })
       this.decorationTypes.set(key, decoration)

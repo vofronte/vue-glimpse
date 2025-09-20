@@ -18,6 +18,24 @@ export const DEFAULT_CATEGORY_ICONS: Record<IdentifierCategoryKey, string> = {
 }
 
 /**
+ * THE SINGLE SOURCE OF TRUTH for default colors.
+ * Values are either a VS Code Theme Color ID or a HEX/RGB string.
+ */
+export const DEFAULT_CATEGORY_COLORS: Record<IdentifierCategoryKey, string> = {
+  props: 'gitDecoration.modifiedResourceForeground',
+  passthrough: 'gitDecoration.ignoredResourceForeground',
+  emits: 'gitDecoration.addedResourceForeground',
+  ref: 'gitDecoration.renamedResourceForeground',
+  reactive: 'gitDecoration.renamedResourceForeground',
+  computed: 'gitDecoration.renamedResourceForeground',
+  store: 'gitDecoration.conflictingResourceForeground',
+  pinia: 'gitDecoration.conflictingResourceForeground',
+  vuex: 'gitDecoration.conflictingResourceForeground',
+  methods: 'gitDecoration.untrackedResourceForeground',
+  localState: 'editorHint.foreground',
+}
+
+/**
  * A pure function that generates the final icon map. Decoupled from vscode API for testability.
  *
  * @param defaults The default icon map.
@@ -28,16 +46,27 @@ export function generateIconMap(
   defaults: Record<IdentifierCategoryKey, string>,
   overrides: Record<string, string>,
 ): Record<IdentifierCategoryKey, string> {
-  // Start with a copy of the defaults
-  const finalIcons = { ...defaults }
-
-  // Apply user overrides
+  const finalMap = { ...defaults }
   for (const key in overrides) {
-    if (Object.prototype.hasOwnProperty.call(finalIcons, key))
-      finalIcons[key as IdentifierCategoryKey] = overrides[key]
+    if (Object.prototype.hasOwnProperty.call(finalMap, key))
+      finalMap[key as IdentifierCategoryKey] = overrides[key]
   }
+  return finalMap
+}
 
-  return finalIcons
+/**
+ * A pure function that generates the final color map. Decoupled from vscode API for testability.
+ *
+ * @param defaults The default color map.
+ * @param overrides The user-defined overrides.
+ * @returns A complete mapping of category keys to their final color strings.
+ */
+export function generateColorMap(
+  defaults: Record<IdentifierCategoryKey, string>,
+  overrides: Record<string, string>,
+): Record<IdentifierCategoryKey, string> {
+  // Logic is identical to generateIconMap, adhering to DRY.
+  return generateIconMap(defaults, overrides)
 }
 
 /**
