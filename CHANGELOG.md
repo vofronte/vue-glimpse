@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.6.0](https://github.com/vofronte/vue-glimpse/compare/v0.5.0...v0.6.0) - 2025-09-20
+
+### ✨ Features
+
+- *(statusBar)* Add analysis status bar indicator ([aa5544e](https://github.com/vofronte/vue-glimpse/commit/aa5544e00ee196ebcb837a116b787e63426d2ab7))
+- *(colors)* Add configurable identifier colors ([91f8cd8](https://github.com/vofronte/vue-glimpse/commit/91f8cd8d0b259ef77b3759095b275da802dd24fc))
+- *(state-management)* Distinguish Pinia and Vuex state identifiers ([55090c5](https://github.com/vofronte/vue-glimpse/commit/55090c5eb11dc96c78d691de04d56300e6d2cfd0))
 ## [0.5.0](https://github.com/vofronte/vue-glimpse/compare/v0.4.0...v0.5.0) - 2025-09-20
 
 ### ✨ Features
