@@ -21,6 +21,8 @@ export type IdentifierCategoryKey
     | 'computed'
     | 'methods'
     | 'store'
+    | 'pinia'
+    | 'vuex'
     | 'emits'
     | 'passthrough'
 

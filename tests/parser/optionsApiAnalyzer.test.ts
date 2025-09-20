@@ -149,3 +149,72 @@ describe('optionsApiAnalyzer', () => {
     expect(ids.reactive.has('state')).toBe(true)
   })
 })
+
+describe('options API - Pinia and Vuex Integration', () => {
+  it('should identify pinia state from mapState with a pinia import', () => {
+    const mockScript = `
+      <script>
+        import { defineComponent } from 'vue'
+        import { mapState } from 'pinia' // The import is the key
+        export default defineComponent({
+          computed: {
+            ...mapState(useUserStore, ['name', 'isAdmin'])
+          }
+        })
+      </script>
+    `
+    const { descriptor } = parse(mockScript)
+    const result = analyzeOptionsApi(descriptor)
+    const ids = result!.scriptIdentifiers
+
+    expect(ids.pinia.size).toBe(2)
+    expect(ids.pinia.has('name')).toBe(true)
+    expect(ids.pinia.has('isAdmin')).toBe(true)
+    expect(ids.store.has('name')).toBe(false)
+  })
+
+  it('should identify vuex state from mapState with a vuex import', () => {
+    const mockScript = `
+      <script>
+        import { defineComponent } from 'vue'
+        import { mapState } from 'vuex' // The import is the key
+        export default defineComponent({
+          computed: {
+            ...mapState(['name', 'isAdmin'])
+          }
+        })
+      </script>
+    `
+    const { descriptor } = parse(mockScript)
+    const result = analyzeOptionsApi(descriptor)
+    const ids = result!.scriptIdentifiers
+
+    expect(ids.vuex.size).toBe(2)
+    expect(ids.vuex.has('name')).toBe(true)
+    expect(ids.vuex.has('isAdmin')).toBe(true)
+    expect(ids.store.has('name')).toBe(false)
+  })
+
+  it('[NEGATIVE TEST] should fallback to generic "store" for mapState without a specific import', () => {
+    const mockScript = `
+      <script>
+        // NOTE: No 'pinia' or 'vuex' import
+        import { defineComponent } from 'vue'
+        import { mapState } from 'some-custom-lib'
+        export default defineComponent({
+          computed: {
+            ...mapState(['name', 'isAdmin'])
+          }
+        })
+      </script>
+    `
+    const { descriptor } = parse(mockScript)
+    const result = analyzeOptionsApi(descriptor)
+    const ids = result!.scriptIdentifiers
+
+    expect(ids.store.size).toBe(2)
+    expect(ids.store.has('name')).toBe(true)
+    expect(ids.pinia.has('name')).toBe(false)
+    expect(ids.vuex.has('name')).toBe(false)
+  })
+})

@@ -11,6 +11,8 @@ export const DEFAULT_CATEGORY_ICONS: Record<IdentifierCategoryKey, string> = {
   reactive: '🔷',
   computed: '⚡',
   store: '📦',
+  pinia: '🍍',
+  vuex: '📦',
   methods: 'ƒ',
   localState: '•',
 }
@@ -49,6 +51,8 @@ export const CATEGORY_LABELS: Record<IdentifierCategoryKey, string> = {
   reactive: 'Reactive',
   computed: 'Computed Property',
   store: 'Store State',
+  pinia: 'Pinia State',
+  vuex: 'Vuex State',
   methods: 'Method',
   localState: 'Local Variable',
 }
@@ -60,6 +64,8 @@ export const CATEGORY_PRIORITY: IdentifierCategoryKey[] = [
   'emits',
   'passthrough',
   'props',
+  'pinia',
+  'vuex',
   'store',
   'computed',
   'ref',

@@ -9,6 +9,8 @@ export const DECORATION_CONFIG: Record<IdentifierCategoryKey, { color: string }>
   computed: { color: 'gitDecoration.renamedResourceForeground' },
   methods: { color: 'gitDecoration.untrackedResourceForeground' },
   store: { color: 'gitDecoration.conflictingResourceForeground' },
+  pinia: { color: 'gitDecoration.conflictingResourceForeground' },
+  vuex: { color: 'gitDecoration.conflictingResourceForeground' },
   emits: { color: 'gitDecoration.addedResourceForeground' },
   passthrough: { color: 'gitDecoration.ignoredResourceForeground' },
 }

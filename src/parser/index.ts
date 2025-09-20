@@ -24,6 +24,8 @@ export function createEmptyAnalysisResult(): AnalysisResult {
     computed: new Map(),
     methods: new Map(),
     store: new Map(),
+    pinia: new Map(),
+    vuex: new Map(),
     emits: new Map(),
     passthrough: new Map(),
   }
@@ -36,6 +38,8 @@ export function createEmptyAnalysisResult(): AnalysisResult {
     computedRanges: [],
     methodsRanges: [],
     storeRanges: [],
+    piniaRanges: [],
+    vuexRanges: [],
     emitsRanges: [],
     passthroughRanges: [],
     scriptIdentifiers: emptyIdentifiers,

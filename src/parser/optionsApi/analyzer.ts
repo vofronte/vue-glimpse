@@ -1,12 +1,14 @@
-import type { ObjectExpression, ObjectMethod, ObjectProperty, VariableDeclarator } from '@babel/types'
+import type { ArrayExpression, ObjectExpression, ObjectMethod, ObjectProperty, VariableDeclarator } from '@babel/types'
 import type { SFCDescriptor } from '@vue/compiler-sfc'
 import type { IdentifierCategoryKey } from '../../parser/types.js'
 import type { AnalysisResult, BindingMetadata, ScriptIdentifiers } from '../types.js'
+import type { ImportAnalysis } from '../utils/importAnalyzer.js'
 import { parse as babelParse } from '@babel/parser'
 import { BindingTypes } from '@vue/compiler-dom'
 import { log } from '../../utils/logger.js'
 import { createEmptyAnalysisResult } from '../index.js'
 import { analyzeTemplate } from '../templateAnalyzer.js'
+import { analyzeImports } from '../utils/importAnalyzer.js'
 import { analyzeVueImports, findComponentDefinition, findSetupMethod, getNodeKeyName } from './helpers.js'
 import { analyzeBindingsFromOptions } from './vendor/analyzeScriptBindings.js'
 
@@ -85,6 +87,8 @@ function convertMetadataToIdentifiers(metadata: BindingMetadata, setupMethodAst:
     computed: new Map(),
     methods: new Map(),
     store: new Map(),
+    pinia: new Map(),
+    vuex: new Map(),
     emits: new Map(),
     passthrough: new Map(),
     localState: new Map(),
@@ -124,8 +128,9 @@ function convertMetadataToIdentifiers(metadata: BindingMetadata, setupMethodAst:
  * Refines the analysis by differentiating computed, methods, and store helpers.
  * @param componentDef The component's ObjectExpression AST node.
  * @param identifiers The ScriptIdentifiers object to refine.
+ * @param importAnalysis Results of the import analysis.
  */
-function detailAnalysis(componentDef: ObjectExpression, identifiers: ScriptIdentifiers) {
+function detailAnalysis(componentDef: ObjectExpression, identifiers: ScriptIdentifiers, importAnalysis: ImportAnalysis) {
   const properties = componentDef.properties.filter(
     (prop): prop is ObjectProperty => prop.type === 'ObjectProperty',
   )
@@ -146,13 +151,32 @@ function detailAnalysis(componentDef: ObjectExpression, identifiers: ScriptIdent
         }
         // Handle `...mapState(...)`
         else if (computedNode.type === 'SpreadElement' && computedNode.argument.type === 'CallExpression') {
-          if (computedNode.argument.arguments[1]?.type === 'ArrayExpression') {
-            for (const el of computedNode.argument.arguments[1].elements) {
+          const call = computedNode.argument
+          // We must be surgically precise. We check the NAME of the function being called.
+          if (call.callee.type !== 'Identifier')
+            continue // Skip complex cases like `stores.mapState()` for now to be safe.
+
+          const calleeName = call.callee.name
+          let targetCategory: 'pinia' | 'vuex' | 'store' = 'store' // Default to generic 'store'
+
+          // Check if the called function's name exists in the set of names imported from 'pinia'.
+          if (importAnalysis.piniaImportNames.has(calleeName))
+            targetCategory = 'pinia'
+          // Else, check if it was imported from 'vuex'.
+          else if (importAnalysis.vuexImportNames.has(calleeName))
+            targetCategory = 'vuex'
+          const arrayArg = call.arguments.find(
+            (arg): arg is ArrayExpression => arg.type === 'ArrayExpression',
+          )
+
+          if (arrayArg) {
+            for (const el of arrayArg.elements) {
               if (el?.type === 'StringLiteral') {
                 const name = el.value
-                if (!identifiers.store.has(name)) {
-                  log(`[Options API] Found store binding from spread: ${name}`)
-                  identifiers.store.set(name, { definition: 'From store helper' })
+                if (!identifiers[targetCategory].has(name)) {
+                  // The log message will now correctly reflect the source.
+                  log(`[Options API] Found ${targetCategory} binding from spread: ${name}`)
+                  identifiers[targetCategory].set(name, { definition: 'From store helper' })
                 }
               }
             }
@@ -173,8 +197,13 @@ function detailAnalysis(componentDef: ObjectExpression, identifiers: ScriptIdent
         // ...mapActions(...) ---
         else if (methodNode.type === 'SpreadElement' && methodNode.argument.type === 'CallExpression') {
           const call = methodNode.argument
-          if (call.arguments[1]?.type === 'ArrayExpression') {
-            for (const el of call.arguments[1].elements) {
+          // This logic is similar and should also be robust. Let's apply the same fix.
+          const arrayArg = call.arguments.find(
+            (arg): arg is ArrayExpression => arg.type === 'ArrayExpression',
+          )
+
+          if (arrayArg) {
+            for (const el of arrayArg.elements) {
               if (el?.type === 'StringLiteral') {
                 const name = el.value
                 // Actions from store helpers are methods.
@@ -219,13 +248,17 @@ export function analyzeOptionsApi(
     const setupMethodAst = findSetupMethod(componentDef)
     const importMap = analyzeVueImports(scriptAst)
 
+    // --- Analyze imports for store context ---
+    const importAnalysis = analyzeImports(scriptAst)
+    log('[Options API] Import analysis result:', importAnalysis)
+
     const bindingMetadata = analyzeBindingsFromOptions(componentDef)
     log('[Options API] Base bindings found:', bindingMetadata)
 
     const scriptIdentifiers = convertMetadataToIdentifiers(bindingMetadata, setupMethodAst, importMap)
 
     // --- Perform detailed analysis ---
-    detailAnalysis(componentDef, scriptIdentifiers)
+    detailAnalysis(componentDef, scriptIdentifiers, importAnalysis)
 
     log('[Options API] Detailed analysis complete:', {
       props: [...scriptIdentifiers.props.keys()],
@@ -233,6 +266,8 @@ export function analyzeOptionsApi(
       computed: [...scriptIdentifiers.computed.keys()],
       methods: [...scriptIdentifiers.methods.keys()],
       store: [...scriptIdentifiers.store.keys()],
+      pinia: [...scriptIdentifiers.pinia.keys()],
+      vuex: [...scriptIdentifiers.vuex.keys()],
       localState: [...scriptIdentifiers.localState.keys()],
     })
 

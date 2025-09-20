@@ -51,6 +51,7 @@ Each question forces a jump to the `<script>` block, breaking your concentration
 
 -   **At-a-glance Origin Indicators:** Subtle icons in your template tell you the source of your data.
 -   **Universal API Support:** Works seamlessly with both `<script setup>` and the Options API.
+-   **Intelligent Store Detection:** Recognizes state from Pinia and Vuex based on imports.
 -   **Minimalist Hovers:** Instantly identify a variable's origin (`Prop`, `Ref`, etc.) on hover—no code, just context.
 -   **Compiler-Level Accuracy:** Powered by `@vue/compiler-sfc` for guaranteed correctness where possible.
 -   **Full API Visibility:** Identifies the entire Vue API surface, including stores and passthrough attributes.
@@ -69,7 +70,8 @@ A simple, intuitive icon set helps you decode your template instantly.
 |  🔹  | `ref`                       | A reactive primitive value (`ref()` in `<script setup>`).      |
 |  🔷  | `reactive`                  | A reactive object (`reactive()` or a `data()` property).         |
 |  ⚡   | `computed`                  | A derived value that updates automatically (`computed` option or function). |
-|  📦   | `store` / External State    | State from a global store like Pinia or Vuex.                |
+|  🍍   | `Pinia State`               | State from a Pinia store, identified via imports.            |
+|  📦   | `Vuex / Other Store`        | State from Vuex or another global store.                     |
 |  ƒ   | `method`                    | A function you can call from the template (`methods` option or a function in `<script setup>`). |
 |  •   | Local Variable              | A simple, non-reactive `const` or `let` in `<script setup>`. |
 

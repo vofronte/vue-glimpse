@@ -102,9 +102,10 @@ describe('scriptAnalyzer', () => {
     const result = analyzeScript(mockScriptBlock, mockScriptContent)
 
     // Check that store variables are correctly identified.
-    expect(result.store.size).toBe(2)
-    expect(result.store.has('name')).toBe(true)
-    expect(result.store.has('isAdmin')).toBe(true)
+    expect(result.store.size).toBe(0) // Should be in pinia, not generic store
+    expect(result.pinia.size).toBe(2)
+    expect(result.pinia.has('name')).toBe(true)
+    expect(result.pinia.has('isAdmin')).toBe(true)
 
     // Check that the regular ref is still identified correctly.
     expect(result.ref.size).toBe(1)
@@ -169,5 +170,74 @@ describe('scriptAnalyzer', () => {
       expect(result.localState.has('attrs')).toBe(false)
       expect(result.localState.has('slots')).toBe(false)
     })
+  })
+})
+
+describe('pinia and Vuex Integration', () => {
+  it('should correctly identify pinia state from storeToRefs', () => {
+    const mockScriptContent = `
+      import { storeToRefs } from 'pinia'
+      import { useUserStore } from './userStore'
+      const { name, isAdmin } = storeToRefs(useUserStore())
+    `
+    const mockScriptBlock = {
+      bindings: {
+        name: BindingTypes.SETUP_REF,
+        isAdmin: BindingTypes.SETUP_REF,
+      },
+    } as unknown as SFCScriptBlock
+
+    const result = analyzeScript(mockScriptBlock, mockScriptContent)
+
+    expect(result.pinia.size).toBe(2)
+    expect(result.pinia.has('name')).toBe(true)
+    expect(result.pinia.has('isAdmin')).toBe(true)
+    // CRITICAL: Ensure they are not misclassified as refs or generic store
+    expect(result.ref.has('name')).toBe(false)
+    expect(result.store.has('name')).toBe(false)
+  })
+
+  it('should correctly identify a pinia store instance from useStore pattern', () => {
+    const mockScriptContent = `
+      import { useUserStore } from 'pinia' // The import source is what matters
+      const userStore = useUserStore()
+    `
+    const mockScriptBlock = {
+      bindings: { userStore: BindingTypes.SETUP_CONST },
+    } as unknown as SFCScriptBlock
+
+    const result = analyzeScript(mockScriptBlock, mockScriptContent)
+
+    expect(result.pinia.size).toBe(1)
+    expect(result.pinia.has('userStore')).toBe(true)
+    expect(result.localState.has('userStore')).toBe(false)
+  })
+
+  it('[NEGATIVE TEST] should fallback to generic "store" if no specific import is found', () => {
+    const mockScriptContent = `
+      // NOTE: No 'pinia' or 'vuex' import
+      import { storeToRefs } from 'some-custom-lib'
+      import { useMyStore } from './myStore'
+      const { name } = storeToRefs(useMyStore())
+      const myStore = useMyStore()
+    `
+    const mockScriptBlock = {
+      bindings: {
+        name: BindingTypes.SETUP_REF,
+        myStore: BindingTypes.SETUP_CONST,
+      },
+    } as unknown as SFCScriptBlock
+
+    const result = analyzeScript(mockScriptBlock, mockScriptContent)
+
+    // Should be classified as generic store
+    expect(result.store.size).toBe(2)
+    expect(result.store.has('name')).toBe(true)
+    expect(result.store.has('myStore')).toBe(true)
+
+    // CRITICAL: Should NOT be classified as pinia or vuex
+    expect(result.pinia.has('name')).toBe(false)
+    expect(result.vuex.has('name')).toBe(false)
+    expect(result.pinia.has('myStore')).toBe(false)
   })
 })

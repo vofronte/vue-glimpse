@@ -43,6 +43,8 @@ export function analyzeTemplate(descriptor: SFCDescriptor, identifiers: ScriptId
     computedRanges: [],
     methodsRanges: [],
     storeRanges: [],
+    piniaRanges: [],
+    vuexRanges: [],
     emitsRanges: [],
     passthroughRanges: [],
   }
@@ -55,6 +57,8 @@ export function analyzeTemplate(descriptor: SFCDescriptor, identifiers: ScriptId
     ...identifiers.computed.keys(),
     ...identifiers.methods.keys(),
     ...identifiers.store.keys(),
+    ...identifiers.pinia.keys(),
+    ...identifiers.vuex.keys(),
     ...identifiers.emits.keys(),
     ...identifiers.passthrough.keys(),
   ])
