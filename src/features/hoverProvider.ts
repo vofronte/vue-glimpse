@@ -1,6 +1,7 @@
 import type { CancellationToken, Hover, HoverProvider, Position, TextDocument } from 'vscode'
-import type { AnalysisManager } from '../analysis/AnalysisManager.js'
+import type { AnalysisManager } from '../analysis/analysisManager.js'
 import { MarkdownString, Hover as VsCodeHover, workspace } from 'vscode'
+import { getIconMap } from '../configManager.js'
 import { IDENTIFIER_CATEGORIES } from '../identifierCategories.js'
 
 /**
@@ -19,27 +20,23 @@ export class VueGlimpseHoverProvider implements HoverProvider {
    * @returns A VS Code Hover object or undefined if no information is found.
    */
   public provideHover(document: TextDocument, position: Position, _token: CancellationToken): Hover | undefined {
-    // Check the configuration at the very beginning.
     const config = workspace.getConfiguration('vueGlimpse')
-    if (!config.get<boolean>('hovers.enabled')) {
-      return // Silently exit if hovers are disabled.
-    }
-    // Immediately return if the extension is disabled or for non-Vue files
-    if (document.languageId !== 'vue') {
+    if (!config.get<boolean>('hovers.enabled'))
       return
-    }
+
+    if (document.languageId !== 'vue')
+      return
 
     const analysisResult = this.analysisManager.getAnalysis(document)
-    if (!analysisResult?.scriptIdentifiers) {
+    if (!analysisResult?.scriptIdentifiers)
       return
-    }
 
     const wordRange = document.getWordRangeAtPosition(position)
-    if (!wordRange) {
+    if (!wordRange)
       return
-    }
 
     const hoveredWord = document.getText(wordRange)
+    const iconMap = getIconMap() // Get current icons dynamically
 
     // Iterate through categories in their defined priority order
     for (const category of IDENTIFIER_CATEGORIES) {
@@ -48,8 +45,9 @@ export class VueGlimpseHoverProvider implements HoverProvider {
         const details = identifierMap.get(hoveredWord)
         if (details) {
           const markdown = new MarkdownString()
+          const icon = iconMap[category.key] // Use the dynamic icon
 
-          markdown.appendMarkdown(`\`${category.icon} ${category.label}\``)
+          markdown.appendMarkdown(`\`${icon} ${category.label}\``)
 
           return new VsCodeHover(markdown, wordRange)
         }

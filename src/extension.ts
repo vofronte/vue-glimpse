@@ -1,15 +1,14 @@
-import type { ExtensionContext, TextEditor, TextEditorDecorationType } from 'vscode'
-import type { IdentifierCategoryKey } from './parser/types.js'
-import { languages, Range, ThemeColor, window, workspace } from 'vscode'
-import { AnalysisManager } from './analysis/AnalysisManager.js'
-import { CATEGORY_ICONS } from './categoryConfig.js'
-import { DECORATION_CONFIG } from './decorators.js'
+import type { ExtensionContext, TextEditor } from 'vscode'
+import { languages, window, workspace } from 'vscode'
+import { AnalysisManager } from './analysis/analysisManager.js'
+import { DecorationManager } from './features/decorationManager.js'
 import { VueGlimpseHoverProvider } from './features/hoverProvider.js'
-import { IDENTIFIER_CATEGORIES } from './identifierCategories.js'
 import { log } from './utils/logger.js'
 
 let activeEditor: TextEditor | undefined = window.activeTextEditor
 let timeout: NodeJS.Timeout | undefined
+let decorationManager: DecorationManager
+let analysisManager: AnalysisManager
 
 /**
  * Main extension activation function. Called when first opening a .vue file.
@@ -17,124 +16,81 @@ let timeout: NodeJS.Timeout | undefined
 export function activate(context: ExtensionContext) {
   log('VueGlimpse is now active!')
 
-  // --- Create and manage decorations within the activation context ---
-  const decorationTypes = new Map<IdentifierCategoryKey, TextEditorDecorationType>()
-
-  for (const category of IDENTIFIER_CATEGORIES) {
-    const key = category.key
-    const config = DECORATION_CONFIG[key]
-    const icon = CATEGORY_ICONS[key]
-    const decoration = window.createTextEditorDecorationType({
-      after: {
-        contentText: icon,
-        margin: '0 0 0 1.5px',
-        color: new ThemeColor(config.color),
-      },
-    })
-    decorationTypes.set(key, decoration)
-  }
-
-  const analysisManager = new AnalysisManager()
+  // --- Initialize Managers ---
+  analysisManager = new AnalysisManager()
+  decorationManager = new DecorationManager()
 
   // --- Register Hover Provider ---
-  // The hover provider is instantiated once and registered for the 'vue' language.
   const hoverProvider = new VueGlimpseHoverProvider(analysisManager)
   context.subscriptions.push(
     languages.registerHoverProvider('vue', hoverProvider),
   )
 
   // --- Event subscribers setup ---
-
-  // 1. Clear cache when a document is closed to prevent memory leaks
   context.subscriptions.push(
+    // 1. Listen for configuration changes
+    workspace.onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration('vueGlimpse.icons.override')) {
+        log('[Configuration] Icon settings changed. Recreating decorations.')
+        decorationManager.recreateDecorationTypes()
+        triggerUpdateDecorations(0) // Force an immediate update
+      }
+    }),
+
+    // 2. Clear cache when a document is closed
     workspace.onDidCloseTextDocument(doc => analysisManager.removeDocument(doc.uri.toString())),
-  )
 
-  // 2. When user changes active tab (editor)
-  context.subscriptions.push(
+    // 3. Update on active editor change
     window.onDidChangeActiveTextEditor((editor) => {
       activeEditor = editor
-      if (editor) {
+      if (editor)
         triggerUpdateDecorations()
-      }
     }),
-  )
 
-  // 3. When user types in document
-  context.subscriptions.push(
+    // 4. Update on text change
     workspace.onDidChangeTextDocument((event) => {
-      // Update only if changes occurred in active editor
-      if (activeEditor && event.document === activeEditor.document) {
+      if (activeEditor && event.document === activeEditor.document)
         triggerUpdateDecorations()
-      }
     }),
   )
-
-  // --- Decoration update logic ---
-
-  /**
-   * "Debouncer": runs `updateDecorations` not on every keystroke,
-   * but only after a short pause to avoid system overload.
-   */
-  function triggerUpdateDecorations() {
-    if (timeout) {
-      clearTimeout(timeout)
-      timeout = undefined
-    }
-
-    timeout = setTimeout(updateDecorations, 300)
-  }
-
-  /**
-   * Main "working" function: analyzes code and applies decoration styles.
-   */
-  function updateDecorations() {
-    if (!activeEditor) {
-      return
-    }
-
-    const document = activeEditor.document
-
-    if (document.languageId !== 'vue') {
-      // Use the new map to clear decorations
-      for (const decoration of decorationTypes.values())
-        activeEditor.setDecorations(decoration, [])
-
-      return
-    }
-
-    const analysisResult = analysisManager.getAnalysis(document)
-
-    // Apply decorations for each category using the new result structure
-    for (const category of IDENTIFIER_CATEGORIES) {
-      // Convert our IdentifierRange[] to vscode.Range[]
-      const ranges = analysisResult[category.resultProperty]
-        .map((r) => {
-          try {
-            const startPos = document.positionAt(r.start)
-            const endPos = document.positionAt(r.end)
-            return new Range(startPos, endPos)
-          }
-          catch (e) {
-            log(`Failed to create range for decoration`, e)
-            return null
-          }
-        })
-        .filter((r): r is Range => r !== null) // Filter out nulls on failure
-
-      const decoration = decorationTypes.get(category.key)
-      if (decoration)
-        activeEditor.setDecorations(decoration, ranges)
-    }
-  }
 
   // Initial run for the currently active editor
-  if (activeEditor) {
+  if (activeEditor)
     triggerUpdateDecorations()
-  }
 }
 
 /**
- * Deactivation function. Called when VS Code or extension is disabled.
+ * "Debouncer": runs `updateDecorations` after a short pause.
  */
-export function deactivate() {}
+function triggerUpdateDecorations(delay = 300) {
+  if (timeout) {
+    clearTimeout(timeout)
+    timeout = undefined
+  }
+  timeout = setTimeout(updateDecorations, delay)
+}
+
+/**
+ * Main "working" function: analyzes code and applies decorations.
+ */
+function updateDecorations() {
+  if (!activeEditor)
+    return
+
+  const { document } = activeEditor
+  if (document.languageId !== 'vue') {
+    decorationManager.clearDecorations(activeEditor)
+    return
+  }
+
+  const analysisResult = analysisManager.getAnalysis(document)
+  decorationManager.applyDecorations(activeEditor, analysisResult)
+}
+
+/**
+ * Deactivation function.
+ */
+export function deactivate() {
+  if (decorationManager)
+    decorationManager.dispose()
+}

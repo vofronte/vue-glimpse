@@ -1,9 +1,9 @@
 import type { IdentifierCategoryKey } from './parser/types.js'
 
 /**
- * THE SINGLE SOURCE OF TRUTH for icons.
+ * THE SINGLE SOURCE OF TRUTH for default icons.
  */
-export const CATEGORY_ICONS: Record<IdentifierCategoryKey, string> = {
+export const DEFAULT_CATEGORY_ICONS: Record<IdentifierCategoryKey, string> = {
   props: '℗',
   passthrough: '📥',
   emits: '📤',
@@ -13,6 +13,29 @@ export const CATEGORY_ICONS: Record<IdentifierCategoryKey, string> = {
   store: '📦',
   methods: 'ƒ',
   localState: '•',
+}
+
+/**
+ * A pure function that generates the final icon map. Decoupled from vscode API for testability.
+ *
+ * @param defaults The default icon map.
+ * @param overrides The user-defined overrides.
+ * @returns A complete mapping of category keys to their final icon strings.
+ */
+export function generateIconMap(
+  defaults: Record<IdentifierCategoryKey, string>,
+  overrides: Record<string, string>,
+): Record<IdentifierCategoryKey, string> {
+  // Start with a copy of the defaults
+  const finalIcons = { ...defaults }
+
+  // Apply user overrides
+  for (const key in overrides) {
+    if (Object.prototype.hasOwnProperty.call(finalIcons, key))
+      finalIcons[key as IdentifierCategoryKey] = overrides[key]
+  }
+
+  return finalIcons
 }
 
 /**

@@ -88,19 +88,13 @@ VueGlimpse activates for `.vue` files. This requires a language support extensio
 
 ## Configuration
 
-VueGlimpse is designed to work out of the box, but you can tailor its features to your workflow.
+VueGlimpse is designed to work out of the box, but you can tailor its features to your workflow by editing your `settings.json`.
 
-| Setting                   | Description                                                 | Default |
-| ------------------------- | ----------------------------------------------------------- | :-----: |
-| `vueGlimpse.enabled`        | Globally enables or disables all features (icons & hovers). | `true`  |
-| `vueGlimpse.hovers.enabled` | Toggles the origin identifier tooltip on hover.             | `true`  |
-
-To change a setting, add it to your `settings.json` file. For example, to disable hovers:
-```json
-{
-  "vueGlimpse.hovers.enabled": false
-}
-```
+| Setting                        | Description                                                                                             | Default |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------- | :-----: |
+| `vueGlimpse.enabled`             | Globally enables or disables all features (icons & hovers).                                             | `true`  |
+| `vueGlimpse.hovers.enabled`      | Toggles the origin identifier tooltip on hover.                                                         | `true`  |
+| `vueGlimpse.icons.override`      | Overrides default icons. Example: `{ "props": "🅿️", "ref": "R" }`                                         |  `{}`   |
 
 ## Community
 

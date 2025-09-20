@@ -5,7 +5,7 @@
   "type": "module",
   "version": "0.4.0",
   "packageManager": "bun@1.2.22",
-  "description": "Instantly see the origin of your Vue template variables (props, state, etc.) without leaving your HTML.",
+  "description": "Instantly see the origin of your Vue template variables (props, state, etc.) without leaving your HTML",
   "author": "vofronte",
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://github.com/vofronte/vue-glimpse/blob/main/README.md",
@@ -75,6 +75,11 @@
           "type": "boolean",
           "default": true,
           "description": "Enables or disables hover tooltips that show the origin of Vue variables."
+        },
+        "vueGlimpse.icons.override": {
+          "type": "object",
+          "default": {},
+          "description": "Override default icons for specific categories. Example: { \"props\": \"🅿️\", \"ref\": \"R\" }"
         }
       }
     }

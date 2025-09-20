@@ -1,14 +1,13 @@
 import type { AnalysisResult, IdentifierCategoryKey, ScriptIdentifiers } from './parser/types.js'
-import { CATEGORY_ICONS, CATEGORY_LABELS, CATEGORY_PRIORITY } from './categoryConfig.js'
+import { CATEGORY_LABELS, CATEGORY_PRIORITY } from './categoryConfig.js'
 
 /**
- * Defines the relationship between an identifier category, its visual representation,
- * and its corresponding properties in the analysis result.
- * This is a "view model" for our categories, independent of VS Code APIs.
+ * Defines the relationship between an identifier category and its corresponding
+ * properties in the analysis result. This is a "view model" for our categories,
+ * independent of VS Code APIs and visual representation.
  */
 export interface IdentifierCategory {
   key: IdentifierCategoryKey
-  icon: string
   label: string
   scriptProperty: keyof ScriptIdentifiers
   resultProperty: keyof Omit<AnalysisResult, 'scriptIdentifiers'>
@@ -24,11 +23,10 @@ export const VUE_BUILTIN_HANDLERS = new Map<string, keyof Omit<AnalysisResult, '
   ['$slots', 'passthroughRanges'],
 ])
 
-// Step 3: Generate the final configuration array programmatically.
-// This is the single source of truth, derived from the data above.
+// This is the single source of truth for category definitions,
+// derived from the base configuration data.
 export const IDENTIFIER_CATEGORIES: IdentifierCategory[] = CATEGORY_PRIORITY.map(key => ({
   key,
-  icon: CATEGORY_ICONS[key],
   label: CATEGORY_LABELS[key],
   scriptProperty: key,
   resultProperty: `${key}Ranges`,
