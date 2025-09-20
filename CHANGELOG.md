@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.7.0](https://github.com/vofronte/vue-glimpse/compare/v0.6.0...v0.7.0) - 2025-09-20
+
+### ✨ Features
+
+- *(decorations)* Add command to toggle decoration visibility ([92ccc17](https://github.com/vofronte/vue-glimpse/commit/92ccc174fec027501e0d1099d2202556dd3bccb0))
 ## [0.6.0](https://github.com/vofronte/vue-glimpse/compare/v0.5.0...v0.6.0) - 2025-09-20
 
 ### ✨ Features
