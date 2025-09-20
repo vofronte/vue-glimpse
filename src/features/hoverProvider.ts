@@ -27,7 +27,8 @@ export class VueGlimpseHoverProvider implements HoverProvider {
     if (document.languageId !== 'vue')
       return
 
-    const analysisResult = this.analysisManager.getAnalysis(document)
+    // Correctly destructure the result from the managed analysis
+    const { result: analysisResult } = this.analysisManager.getAnalysis(document)
     if (!analysisResult?.scriptIdentifiers)
       return
 

@@ -3,12 +3,14 @@ import { languages, window, workspace } from 'vscode'
 import { AnalysisManager } from './analysis/analysisManager.js'
 import { DecorationManager } from './features/decorationManager.js'
 import { VueGlimpseHoverProvider } from './features/hoverProvider.js'
+import { StatusBarManager } from './features/statusBarManager.js'
 import { log } from './utils/logger.js'
 
 let activeEditor: TextEditor | undefined = window.activeTextEditor
 let timeout: NodeJS.Timeout | undefined
 let decorationManager: DecorationManager
 let analysisManager: AnalysisManager
+let statusBarManager: StatusBarManager
 
 /**
  * Main extension activation function. Called when first opening a .vue file.
@@ -19,6 +21,7 @@ export function activate(context: ExtensionContext) {
   // --- Initialize Managers ---
   analysisManager = new AnalysisManager()
   decorationManager = new DecorationManager()
+  statusBarManager = new StatusBarManager(context)
 
   // --- Register Hover Provider ---
   const hoverProvider = new VueGlimpseHoverProvider(analysisManager)
@@ -38,6 +41,13 @@ export function activate(context: ExtensionContext) {
         decorationManager.recreateDecorationTypes()
         triggerUpdateDecorations(0) // Force an immediate update
       }
+
+      // React to the status bar toggle
+      if (event.affectsConfiguration('vueGlimpse.statusBar.enabled')) {
+        log('[Configuration] Status bar setting changed. Updating visibility.')
+        // Simply trigger an update. The StatusBarManager will handle its own visibility.
+        updateDecorations()
+      }
     }),
 
     // 2. Clear cache when a document is closed
@@ -46,26 +56,37 @@ export function activate(context: ExtensionContext) {
     // 3. Update on active editor change
     window.onDidChangeActiveTextEditor((editor) => {
       activeEditor = editor
-      if (editor && editor.document)
+      if (editor && editor.document.languageId === 'vue') {
+        statusBarManager.show()
         triggerUpdateDecorations()
+      }
+      else {
+        statusBarManager.hide()
+      }
     }),
 
     // 4. Update on text change
     workspace.onDidChangeTextDocument((event) => {
-      if (activeEditor && event.document === activeEditor.document)
+      if (activeEditor && event.document === activeEditor.document && event.document.languageId === 'vue')
         triggerUpdateDecorations()
     }),
   )
 
   // Initial run for the currently active editor
-  if (activeEditor && activeEditor.document)
+  if (activeEditor && activeEditor.document.languageId === 'vue') {
+    statusBarManager.show()
     triggerUpdateDecorations()
+  }
 }
 
 /**
- * "Debouncer": runs `updateDecorations` after a short pause.
+ * "Debouncer": shows 'analyzing' state immediately, then runs `updateDecorations` after a short pause.
  */
 function triggerUpdateDecorations(delay = 300) {
+  // Provide instant feedback that analysis is pending
+  if (activeEditor && activeEditor.document.languageId === 'vue')
+    statusBarManager.updateStatus({ state: 'analyzing' })
+
   if (timeout) {
     clearTimeout(timeout)
     timeout = undefined
@@ -77,17 +98,36 @@ function triggerUpdateDecorations(delay = 300) {
  * Main "working" function: analyzes code and applies decorations.
  */
 function updateDecorations() {
-  if (!activeEditor || !activeEditor.document)
+  if (!activeEditor || !activeEditor.document) {
+    statusBarManager.hide()
     return
+  }
 
   const { document } = activeEditor
   if (document.languageId !== 'vue') {
     decorationManager.clearDecorations(activeEditor)
+    statusBarManager.hide()
     return
   }
+  statusBarManager.show()
 
-  const analysisResult = analysisManager.getAnalysis(document)
-  decorationManager.applyDecorations(activeEditor, analysisResult)
+  const managedResult = analysisManager.getAnalysis(document)
+
+  // Update status bar based on the analysis outcome
+  if (managedResult.status === 'ok') {
+    statusBarManager.updateStatus({ state: 'ok' })
+  }
+  else {
+    // 'stale' or 'failed'
+    statusBarManager.updateStatus({
+      state: 'error',
+      error: managedResult.error,
+      documentUri: document.uri.toString(),
+    })
+  }
+
+  // Apply decorations using the (potentially stale) result
+  decorationManager.applyDecorations(activeEditor, managedResult.result)
 }
 
 /**
@@ -96,4 +136,5 @@ function updateDecorations() {
 export function deactivate() {
   if (decorationManager)
     decorationManager.dispose()
+  // StatusBarManager is disposed automatically via context.subscriptions
 }

@@ -76,6 +76,11 @@
           "default": true,
           "description": "Enables or disables hover tooltips that show the origin of Vue variables."
         },
+        "vueGlimpse.statusBar.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Shows or hides the analysis status indicator (✅/⚠️) in the status bar."
+        },
         "vueGlimpse.icons.override": {
           "type": "object",
           "default": {},

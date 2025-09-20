@@ -8,6 +8,12 @@ interface CacheEntry {
   result: AnalysisResult
 }
 
+export interface ManagedAnalysisResult {
+  result: AnalysisResult
+  status: 'ok' | 'stale' | 'failed'
+  error?: unknown
+}
+
 /**
  * Manages the analysis of Vue files, incorporating a cache to avoid
  * re-analyzing unchanged documents.
@@ -18,45 +24,44 @@ export class AnalysisManager {
   /**
    * Retrieves the analysis result for a given document.
    * It will first check a cache. If a valid, up-to-date result is found,
-   * it's returned instantly. Otherwise, it performs a full analysis and
-   * caches the new result.
+   * it's returned instantly with an 'ok' status.
    *
-   * If analysis fails due to a syntax error, it will attempt to return a
-   * stale (previous) result from the cache instead of clearing decorations.
+   * If analysis fails due to a syntax error, it will return a stale result
+   * with a 'stale' status, or an empty result with a 'failed' status
+   * if no cache is available.
    *
    * @param document The TextDocument to analyze.
-   * @returns The analysis result for the document. Never null.
+   * @returns A ManagedAnalysisResult object containing the result, status, and optional error.
    */
-  public getAnalysis(document: TextDocument): AnalysisResult {
+  public getAnalysis(document: TextDocument): ManagedAnalysisResult {
     const cachedEntry = this.cache.get(document.uri.toString())
 
     if (cachedEntry && cachedEntry.version === document.version) {
       log(`[Cache] HIT for ${document.fileName} v${document.version}`)
-      return cachedEntry.result
+      return { result: cachedEntry.result, status: 'ok' }
     }
 
     log(`[Cache] MISS for ${document.fileName} v${document.version}. Analyzing...`)
-    const newResult = analyzeVueFile(document.getText(), document)
 
-    // Case 1: Analysis was successful.
-    if (newResult) {
+    try {
+      const newResult = analyzeVueFile(document.getText(), document)
       this.cache.set(document.uri.toString(), {
         version: document.version,
         result: newResult,
       })
-      return newResult
+      return { result: newResult, status: 'ok' }
     }
+    catch (error) {
+      // Analysis failed. Attempt to use stale cache.
+      if (cachedEntry) {
+        log(`[Cache] SERVING STALE for ${document.fileName} (v${cachedEntry.version}) due to error.`)
+        return { result: cachedEntry.result, status: 'stale', error }
+      }
 
-    // Case 2: Analysis failed (e.g., syntax error).
-    log('[Analysis] Failed. Attempting to use stale cache.')
-    if (cachedEntry) {
-      log(`[Cache] SERVING STALE for ${document.fileName} (v${cachedEntry.version})`)
-      return cachedEntry.result // Return the last known good result.
+      // Analysis failed and there's no cached version.
+      log('[Analysis] No stale cache available. Returning empty result.')
+      return { result: createEmptyAnalysisResult(), status: 'failed', error }
     }
-
-    // Case 3: Analysis failed and there's no cached version.
-    log('[Analysis] No stale cache available. Returning empty result.')
-    return createEmptyAnalysisResult()
   }
 
   /**

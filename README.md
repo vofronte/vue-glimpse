@@ -96,6 +96,7 @@ VueGlimpse is designed to work out of the box, but you can tailor its features t
 | ------------------------------ | ------------------------------------------------------------------------------------------------------- | :-----: |
 | `vueGlimpse.enabled`             | Globally enables or disables all features (icons & hovers).                                             | `true`  |
 | `vueGlimpse.hovers.enabled`      | Toggles the origin identifier tooltip on hover.                                                         | `true`  |
+| `vueGlimpse.statusBar.enabled`   | Shows or hides the analysis status indicator (`✅`/`⚠️`) in the status bar.                              | `true`  |
 | `vueGlimpse.icons.override`      | Overrides default icons. Example: `{ "props": "🅿️", "ref": "R" }`                                         |  `{}`   |
 | `vueGlimpse.colors.override`     | Overrides default colors. Example: `{ "props": "#90ee90", "ref": "terminal.ansiBlue" }`                     |  `{}`   |
 

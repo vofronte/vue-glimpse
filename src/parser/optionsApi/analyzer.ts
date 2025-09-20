@@ -223,11 +223,11 @@ function detailAnalysis(componentDef: ObjectExpression, identifiers: ScriptIdent
 /**
  * Orchestrates the analysis of a Vue component using the Options API.
  * @param descriptor The SFC descriptor.
- * @returns A comprehensive analysis result or null on failure.
+ * @returns A comprehensive analysis result. Throws an error on failure.
  */
 export function analyzeOptionsApi(
   descriptor: SFCDescriptor,
-): AnalysisResult | null {
+): AnalysisResult {
   log('[Options API] Analyzer invoked.')
   if (!descriptor.script)
     return createEmptyAnalysisResult()
@@ -280,6 +280,7 @@ export function analyzeOptionsApi(
   }
   catch (error) {
     log('[Options API] Failed to parse script:', error)
-    return null
+    // Propagate the error to be handled by AnalysisManager
+    throw error
   }
 }

@@ -52,7 +52,7 @@ export function createEmptyAnalysisResult(): AnalysisResult {
  * @param descriptor The SFC descriptor.
  * @returns A comprehensive analysis result or null on failure.
  */
-function analyzeScriptSetup(descriptor: SFCDescriptor): AnalysisResult | null {
+function analyzeScriptSetup(descriptor: SFCDescriptor): AnalysisResult {
   if (!descriptor.scriptSetup)
     return createEmptyAnalysisResult()
 
@@ -75,12 +75,15 @@ function analyzeScriptSetup(descriptor: SFCDescriptor): AnalysisResult | null {
   return { ...createEmptyAnalysisResult(), scriptIdentifiers }
 }
 
-export function analyzeVueFile(code: string, document: TextDocument): AnalysisResult | null {
+export function analyzeVueFile(code: string, document: TextDocument): AnalysisResult {
   try {
     // Step 1: Parse the SFC to get the descriptor. This is universal.
     const { descriptor, errors } = parse(code, { filename: document.uri.fsPath })
     if (errors.length > 0) {
       log('SFC parse errors:', errors.map(e => e.message))
+      // If there are parsing errors, we can throw the first one to be caught.
+      if (errors[0])
+        throw errors[0]
     }
 
     // DISPATCHER LOGIC
@@ -98,7 +101,8 @@ export function analyzeVueFile(code: string, document: TextDocument): AnalysisRe
   }
   catch (error) {
     logError('FATAL ERROR during analysis.', error)
-    // Return null to signal that analysis failed and a stale result should be used if available.
-    return null
+    // Propagate the error instead of returning null.
+    // The AnalysisManager is now responsible for handling it.
+    throw error
   }
 }
