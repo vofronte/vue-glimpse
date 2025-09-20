@@ -1,38 +1,52 @@
 ---
-name: Bug report
-about: Create a report to help us improve
-title: ''
-labels: ''
+name: "🐛 Bug Report"
+about: "Something isn't working as expected? Let us know!"
+title: "[BUG] A brief, descriptive title"
+labels: "bug, needs-triage"
 assignees: ''
 
 ---
 
-**Describe the bug**
+### 🐛 Bug Description
+<!--
 A clear and concise description of what the bug is.
+What did you see? What did you expect instead?
+-->
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+<br/>
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+### 💻 Code Snippet to Reproduce
+<!--
+This is the most important part! Please provide a minimal, self-contained Vue component that demonstrates the issue. This helps us fix things much faster.
+-->
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+```vue
+<!-- PASTE YOUR VUE COMPONENT CODE HERE -->
+<script setup>
+// ...
+</script>
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+<template>
+  <!-- ... -->
+</template>
+```
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+<br/>
 
-**Additional context**
-Add any other context about the problem here.
+### ✅ Expected Behavior
+<!-- What should have happened? E.g., "The 'user' variable should have a 'prop' icon (℗)." -->
+
+<br/>
+
+### ❌ Actual Behavior
+<!-- What actually happened? E.g., "The 'user' variable had no icon," or "It was incorrectly identified as 'ref' (🔹)." -->
+
+<br/>
+
+### 🛠️ Your Environment
+<!-- Please fill in these details to help us diagnose the issue. -->
+- **VS Code Version:**
+- **VueGlimpse Version:**
+- **Vue Version:**
+- **Nuxt Version (if applicable):** N/A
+- **OS:**
