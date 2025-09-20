@@ -1,6 +1,12 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.5.0](https://github.com/vofronte/vue-glimpse/compare/v0.4.0...v0.5.0) - 2025-09-20
+
+### ✨ Features
+
+- *(icons)* Allow users to customize identifier icons ([7006b71](https://github.com/vofronte/vue-glimpse/commit/7006b71ee3b567f9c123c4791f65422e25b70a3d))
+- *(optionsApi)* Categorize setup bindings more precisely ([96506ab](https://github.com/vofronte/vue-glimpse/commit/96506ab43a4f14d8673715462384ddff24da5ee7))
 ## [0.4.0](https://github.com/vofronte/vue-glimpse/compare/v0.3.1...v0.4.0) - 2025-09-18
 
 ### ✨ Features
