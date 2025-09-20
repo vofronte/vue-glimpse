@@ -1,15 +1,83 @@
-import type { ObjectExpression, ObjectProperty } from '@babel/types'
+import type { ObjectExpression, ObjectMethod, ObjectProperty, VariableDeclarator } from '@babel/types'
 import type { SFCDescriptor } from '@vue/compiler-sfc'
+import type { IdentifierCategoryKey } from '../../parser/types.js'
 import type { AnalysisResult, BindingMetadata, ScriptIdentifiers } from '../types.js'
 import { parse as babelParse } from '@babel/parser'
 import { BindingTypes } from '@vue/compiler-dom'
 import { log } from '../../utils/logger.js'
 import { createEmptyAnalysisResult } from '../index.js'
 import { analyzeTemplate } from '../templateAnalyzer.js'
-import { findComponentDefinition, getNodeKeyName } from './helpers.js'
+import { analyzeVueImports, findComponentDefinition, findSetupMethod, getNodeKeyName } from './helpers.js'
 import { analyzeBindingsFromOptions } from './vendor/analyzeScriptBindings.js'
 
-function convertMetadataToIdentifiers(metadata: BindingMetadata): ScriptIdentifiers {
+/**
+ * Analyzes a binding from setup() to determine its specific reactivity type.
+ * Only handles the simple case: `const myVar = ref(...)`.
+ * @param name The name of the binding to analyze.
+ * @param setupMethodAst The AST node of the setup() method.
+ * @returns A specific IdentifierCategoryKey or null if uncertain.
+ */
+function analyzeSetupBinding(
+  name: string,
+  setupMethodAst: ObjectMethod,
+  importMap: Map<string, string>,
+): IdentifierCategoryKey | null {
+  let declarator: VariableDeclarator | undefined
+
+  // 1. Find the variable declaration in the setup() body
+  for (const node of setupMethodAst.body.body) {
+    if (node.type === 'VariableDeclaration') {
+      const decl = node.declarations.find(
+        d => d.id.type === 'Identifier' && d.id.name === name,
+      )
+      if (decl) {
+        declarator = decl
+        break
+      }
+    }
+  }
+
+  if (!declarator || !declarator.init) {
+    // No declaration or no initializer, we can't be sure.
+    return null
+  }
+
+  const init = declarator.init
+
+  // Case 1: Reactivity APIs
+  if (init.type === 'CallExpression' && init.callee.type === 'Identifier') {
+    const calleeName = init.callee.name
+    const originalName = importMap.get(calleeName) || calleeName
+
+    switch (originalName) {
+      case 'ref': return 'ref'
+      case 'reactive': return 'reactive'
+      case 'computed': return 'computed'
+    }
+  }
+
+  // Case 2: Simple literal constants
+  if (
+    init.type === 'NumericLiteral'
+    || init.type === 'StringLiteral'
+    || init.type === 'BooleanLiteral'
+    || init.type === 'NullLiteral'
+    || init.type === 'ArrayExpression'
+    || init.type === 'ObjectExpression'
+  ) {
+    return 'localState'
+  }
+
+  // Case 3: Arrow function or function expression (treat as a method)
+  if (init.type === 'ArrowFunctionExpression' || init.type === 'FunctionExpression') {
+    return 'methods'
+  }
+
+  // We are not sure about other cases (e.g., complex expressions, reassignment)
+  return null
+}
+
+function convertMetadataToIdentifiers(metadata: BindingMetadata, setupMethodAst: ObjectMethod | undefined, importMap: Map<string, string>): ScriptIdentifiers {
   const identifiers: ScriptIdentifiers = {
     props: new Map(),
     reactive: new Map(),
@@ -34,7 +102,16 @@ function convertMetadataToIdentifiers(metadata: BindingMetadata): ScriptIdentifi
         identifiers.reactive.set(name, details); break
       case BindingTypes.SETUP_MAYBE_REF:
       case BindingTypes.SETUP_REF:
-        identifiers.ref.set(name, details); break
+        if (setupMethodAst) {
+          const refinedCategory = analyzeSetupBinding(name, setupMethodAst, importMap)
+          if (refinedCategory) {
+            // We are 100% sure, so we classify it.
+            identifiers[refinedCategory].set(name, details)
+            continue
+          }
+          // If refinedCategory is null, we do NOTHING. No icon will be shown.
+        }
+        break
       case BindingTypes.OPTIONS:
         identifiers.localState.set(name, details); break
     }
@@ -138,10 +215,14 @@ export function analyzeOptionsApi(
       return createEmptyAnalysisResult()
     }
 
+    // Find the setup method AST node
+    const setupMethodAst = findSetupMethod(componentDef)
+    const importMap = analyzeVueImports(scriptAst)
+
     const bindingMetadata = analyzeBindingsFromOptions(componentDef)
     log('[Options API] Base bindings found:', bindingMetadata)
 
-    const scriptIdentifiers = convertMetadataToIdentifiers(bindingMetadata)
+    const scriptIdentifiers = convertMetadataToIdentifiers(bindingMetadata, setupMethodAst, importMap)
 
     // --- Perform detailed analysis ---
     detailAnalysis(componentDef, scriptIdentifiers)
@@ -152,6 +233,7 @@ export function analyzeOptionsApi(
       computed: [...scriptIdentifiers.computed.keys()],
       methods: [...scriptIdentifiers.methods.keys()],
       store: [...scriptIdentifiers.store.keys()],
+      localState: [...scriptIdentifiers.localState.keys()],
     })
 
     if (descriptor.template?.ast) {
