@@ -35,6 +35,7 @@ VueGlimpse is a VS Code extension for **Vue & Nuxt** that ends the constant scro
 - [Features](#features)
 - [The Legend: Icon Guide](#the-legend-icon-guide)
 - [Getting Started](#getting-started)
+- [Usage](#usage)
 - [Configuration](#configuration)
 - [Community](#community)
 
@@ -53,6 +54,7 @@ Each question forces a jump to the `<script>` block, breaking your concentration
 ## Features
 
 -   **At-a-glance Origin Indicators:** Subtle icons in your template tell you the source of your data.
+-   **Reliability Indicator:** Always know if the analysis is up-to-date with a simple status bar icon.
 -   **Universal API Support:** Works seamlessly with both `<script setup>` and the Options API.
 -   **Intelligent Store Detection:** Recognizes state from Pinia and Vuex based on imports.
 -   **Minimalist Hovers:** Instantly identify a variable's origin (`Prop`, `Ref`, etc.) on hover—no code, just context.
@@ -91,6 +93,15 @@ A simple, intuitive icon set helps you decode your template instantly.
 
 VueGlimpse activates for `.vue` files. This requires a language support extension like [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (which you likely already have).
 
+## Usage
+
+### Toggling Decorations
+
+For a distraction-free view (e.g., during a presentation), you can quickly hide or show all VueGlimpse icons.
+
+1.  Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`).
+2.  Type and select **`VueGlimpse: Toggle Decorations`**.
+
 ## Configuration
 
 VueGlimpse is designed to work out of the box, but you can tailor its features to your workflow by editing your `settings.json`.
@@ -99,7 +110,7 @@ VueGlimpse is designed to work out of the box, but you can tailor its features t
 | ------------------------------ | ------------------------------------------------------------------------------------------------------- | :-----: |
 | `vueGlimpse.enabled`             | Globally enables or disables all features (icons & hovers).                                             | `true`  |
 | `vueGlimpse.hovers.enabled`      | Toggles the origin identifier tooltip on hover.                                                         | `true`  |
-| `vueGlimpse.statusBar.enabled`   | Shows or hides the analysis status indicator (`✅`/`⚠️`) in the status bar.                              | `true`  |
+| `vueGlimpse.statusBar.enabled`   | Shows or hides the analysis status indicator in the status bar.                                         | `true`  |                            | `true`  |
 | `vueGlimpse.icons.override`      | Overrides default icons. Example: `{ "props": "🅿️", "ref": "R" }`                                         |  `{}`   |
 | `vueGlimpse.colors.override`     | Overrides default colors. Example: `{ "props": "#90ee90", "ref": "terminal.ansiBlue" }`                     |  `{}`   |
 

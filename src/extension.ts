@@ -1,5 +1,5 @@
 import type { ExtensionContext, TextEditor } from 'vscode'
-import { languages, window, workspace } from 'vscode'
+import { commands, languages, window, workspace } from 'vscode'
 import { AnalysisManager } from './analysis/analysisManager.js'
 import { DecorationManager } from './features/decorationManager.js'
 import { VueGlimpseHoverProvider } from './features/hoverProvider.js'
@@ -11,6 +11,7 @@ let timeout: NodeJS.Timeout | undefined
 let decorationManager: DecorationManager
 let analysisManager: AnalysisManager
 let statusBarManager: StatusBarManager
+let decorationsVisible = true // State flag for decoration visibility
 
 /**
  * Main extension activation function. Called when first opening a .vue file.
@@ -22,6 +23,15 @@ export function activate(context: ExtensionContext) {
   analysisManager = new AnalysisManager()
   decorationManager = new DecorationManager()
   statusBarManager = new StatusBarManager(context)
+
+  // --- Register Command ---
+  const toggleCommand = commands.registerCommand('vueGlimpse.toggleDecorations', () => {
+    decorationsVisible = !decorationsVisible // Flip the state
+    const status = decorationsVisible ? 'enabled' : 'disabled'
+    window.showInformationMessage(`VueGlimpse decorations ${status}`)
+    triggerUpdateDecorations(0) // Force an immediate update
+  })
+  context.subscriptions.push(toggleCommand)
 
   // --- Register Hover Provider ---
   const hoverProvider = new VueGlimpseHoverProvider(analysisManager)
@@ -126,8 +136,13 @@ function updateDecorations() {
     })
   }
 
-  // Apply decorations using the (potentially stale) result
-  decorationManager.applyDecorations(activeEditor, managedResult.result)
+  // Apply or clear decorations based on our toggle state
+  if (decorationsVisible) {
+    decorationManager.applyDecorations(activeEditor, managedResult.result)
+  }
+  else {
+    decorationManager.clearDecorations(activeEditor)
+  }
 }
 
 /**

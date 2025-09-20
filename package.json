@@ -63,6 +63,12 @@
     "onLanguage:vue"
   ],
   "contributes": {
+    "commands": [
+      {
+        "command": "vueGlimpse.toggleDecorations",
+        "title": "VueGlimpse: Toggle Decorations"
+      }
+    ],
     "configuration": {
       "title": "VueGlimpse",
       "properties": {
